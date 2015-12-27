@@ -3,7 +3,7 @@ from pkgutil import walk_packages
 from inspect import getmembers, isclass
 from lib import QUEUE_END_SYMBOL
 
-class AbstractBasePlugin(metaclass=abc.ABCMeta):
+class AbstractBasePlugin(object):
     """
     All plugins must inherit from this base class.
     """

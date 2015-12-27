@@ -2,8 +2,7 @@
 
 # this wrapper tries to chose a preferred interpreter
 
-# TODO: pypy compatibility
-for i in python3 python2;
+for i in pypy python3 python2;
 do
   if type $i > /dev/null;
   then
