@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# this wrapper tries to chose a preferred interpreter
+
+# TODO: pypy compatibility
+for i in python3 python2;
+do
+  if type $i > /dev/null;
+  then
+    args="${*:1}"
+    $i "`dirname "$0"`/yana.py" ${args[@]}
+    exit $?
+  fi
+done
