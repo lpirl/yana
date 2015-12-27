@@ -1,9 +1,7 @@
 import logging
 from inspect import getmembers, isclass
 from multiprocessing import Process, JoinableQueue as Queue
-from subprocess import Popen, PIPE, DEVNULL
-from os import linesep
-
+import re
 
 QUEUE_END_SYMBOL = None
 
@@ -38,24 +36,36 @@ class Yana(object):
         Finds all notes under ``path`` and puts them into the
         ``notes_paths_q``.
         """
+        # TODO: spawn new process if crossing fs boundaries?
+
+        put = notes_paths_q.put
 
         # TODO: make this configurable:
-        cmd = ("find", path, "-name", "*.yana")
+        match = re.compile('.*\.yana').match
 
-        # we do not care about stderr since providing PIPE as stderr as
-        # well deadlocks easily
-        inner_find_process = Popen(
-            cmd,
-            stdout=PIPE,
-            stderr=DEVNULL,
-            universal_newlines=True,
-            bufsize=1
-        )
-
-        for line in inner_find_process.stdout.readlines():
-            line = line.rstrip(linesep)
-            notes_paths_q.put(line)
-        notes_paths_q.put(QUEUE_END_SYMBOL)
+        try:
+            # cPython >= 3.5
+            from os import scandir
+            exclude = ('.', '..')
+            for dir_entry in scandir(path):
+                entry_name = dir_entry.name
+                if not dir_entry.is_file():
+                    continue
+                if entry_name in exclude:
+                    continue
+                if not match(entry_name):
+                    continue
+                put(entry_path)
+        except ImportError:
+            # cPython < 3.5
+            from os import walk
+            from os.path import join as path_join
+            for root, _, files in walk(path):
+                for file_path in files:
+                    if match(file_path):
+                        put(path_join(root, file_path))
+        finally:
+            put(QUEUE_END_SYMBOL)
 
     def run(self, args):
         """
