@@ -8,7 +8,7 @@ do
   if type $i > /dev/null;
   then
     args="${*:1}"
-    $i "`dirname "$0"`/yana.py" ${args[@]}
+    $i yana.py ${args[@]}
     exit $?
   fi
 done
