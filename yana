@@ -2,12 +2,14 @@
 
 # this wrapper tries to chose a preferred interpreter
 
+DIR=`dirname $(python -c "import os; print os.path.realpath(\"${0}\")")`
+
 for i in pypy python3 python2 python;
 do
   if type $i > /dev/null;
   then
     args="${*:1}"
-    $i yana.py ${args[@]}
+    $i $DIR/yana.py ${args[@]}
     exit $?
   fi
 done

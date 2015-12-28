@@ -70,11 +70,11 @@ class Yana(object):
             self.plugins[cls.sub_command] = cls(sub_parser)
 
             # add the path argument per default after all other arguments
-            sub_parser.add_argument('path', type=str, nargs="?", default=".",
+            sub_parser.add_argument('path', type=str, nargs="*", default=".",
                                     help='Directory or file to operate on.')
 
     @classmethod
-    def find_notes(cls, path, notes_paths_q):
+    def find_notes(cls, paths, notes_paths_q):
         """
         Finds all notes under ``path`` and puts them into the
         ``notes_paths_q``.
@@ -90,23 +90,25 @@ class Yana(object):
             # cPython >= 3.5
             from os import scandir
             exclude = ('.', '..')
-            for dir_entry in scandir(path):
-                entry_name = dir_entry.name
-                if not dir_entry.is_file():
-                    continue
-                if entry_name in exclude:
-                    continue
-                if not match(entry_name):
-                    continue
-                put(entry_path)
+            for path in paths:
+                for dir_entry in scandir(path):
+                    entry_name = dir_entry.name
+                    if not dir_entry.is_file():
+                        continue
+                    if entry_name in exclude:
+                        continue
+                    if not match(entry_name):
+                        continue
+                    put(entry_path)
         except ImportError:
             # cPython < 3.5
             from os import walk
             from os.path import join as path_join
-            for root, _, files in walk(path):
-                for file_path in files:
-                    if match(file_path):
-                        put(path_join(root, file_path))
+            for path in paths:
+                for root, _, files in walk(path):
+                    for file_path in files:
+                        if match(file_path):
+                            put(path_join(root, file_path))
         finally:
             put(QUEUE_END_SYMBOL)
 
