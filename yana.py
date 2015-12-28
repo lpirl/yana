@@ -29,6 +29,11 @@ class Yana(object):
         )
 
     def _parse_args(self):
+
+        # display help per default:
+        if len(argv) == 1:
+            argv.append("-h")
+
         self.args = self.arg_parser.parse_args()
 
     def _init_logging(self):
