@@ -1,7 +1,7 @@
 import abc
 from pkgutil import walk_packages
 from inspect import getmembers, isclass
-from lib import QUEUE_END_SYMBOL
+from yana import QUEUE_END_SYMBOL
 
 class AbstractBasePlugin(object):
     """
@@ -15,9 +15,15 @@ class AbstractBasePlugin(object):
     Sub command this plugin will be assigned to.
     """
 
+    sub_command_help = None
+    """
+    Short description of sub command.
+    """
+
     def __init__(self, args_parser):
 
         assert self.sub_command is not None
+        assert self.sub_command_help is not None
 
         self.args_parser = args_parser
 
