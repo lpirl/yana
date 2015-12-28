@@ -2,7 +2,7 @@
 
 # this wrapper tries to chose a preferred interpreter
 
-for i in pypy python3 python2;
+for i in pypy python3 python2 python;
 do
   if type $i > /dev/null;
   then
