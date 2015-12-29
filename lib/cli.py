@@ -6,6 +6,7 @@ import logging
 from inspect import getmembers, isclass
 from multiprocessing import Process, Queue
 import re
+from os.path import isfile, isdir
 
 from lib import QUEUE_END_SYMBOL
 
@@ -80,8 +81,18 @@ class Cli(object):
         ``notes_paths_q``.
         """
         # TODO: spawn new process if crossing fs boundaries?
-
         put = notes_paths_q.put
+
+        dir_paths = []
+        for path in paths:
+            if isfile(path):
+                put(path)
+            elif isdir(path):
+              dir_paths.append(path)
+            else:
+              logging.error("Cannot find '%s'" % path)
+              put(QUEUE_END_SYMBOL)
+              exit(1)
 
         # TODO: make this configurable:
         match = re.compile('.*\.note$').match
@@ -90,8 +101,8 @@ class Cli(object):
             # cPython >= 3.5
             from os import scandir
             exclude = ('.', '..')
-            for path in paths:
-                for dir_entry in scandir(path):
+            for dir_path in dir_paths:
+                for dir_entry in scandir(dir_path):
                     entry_name = dir_entry.name
                     if not dir_entry.is_file():
                         continue
@@ -104,8 +115,8 @@ class Cli(object):
             # cPython < 3.5
             from os import walk
             from os.path import join as path_join
-            for path in paths:
-                for root, _, files in walk(path):
+            for dir_path in dir_paths:
+                for root, _, files in walk(dir_path):
                     for file_path in files:
                         if match(file_path):
                             put(path_join(root, file_path))

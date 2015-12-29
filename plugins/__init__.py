@@ -1,6 +1,7 @@
 import abc
 from pkgutil import walk_packages
 from inspect import getmembers, isclass
+
 from lib import QUEUE_END_SYMBOL
 
 class AbstractBasePlugin(object):
