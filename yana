@@ -9,7 +9,7 @@ do
   if type $i > /dev/null;
   then
     args="${*:1}"
-    $i $DIR/yana.py ${args[@]}
+    $i $DIR/yana.py "$@"
     exit $?
   fi
 done
