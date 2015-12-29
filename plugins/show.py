@@ -1,9 +1,10 @@
 import logging
 from shutil import copyfileobj
 from sys import stdout
+from os import linesep
 
 from plugins import AbstractBasePlugin
-from lib.printing import print_headline
+from lib.printing import print_colored
 
 class Show(AbstractBasePlugin):
 
@@ -11,6 +12,6 @@ class Show(AbstractBasePlugin):
     sub_command_help = "show notes"
 
     def run_on_path(self, args, notes_path):
-        print_headline("%s" % notes_path, interactive_only=True)
+        print_colored("%s%s" % (notes_path, linesep), interactive_only=True)
         with open(notes_path, "r") as f:
             copyfileobj(f, stdout)
