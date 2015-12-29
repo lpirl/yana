@@ -3,16 +3,21 @@ A few helpers to have a unified printing facility (similar to logging).
 """
 
 import sys
-from os import linesep
+from os import linesep, fdopen
 
 from blessings import Terminal
 
-reload(sys)
-sys.setdefaultencoding('utf8')
+PYTHON_MAJOR_VERSION = sys.version_info[0]
+
+if PYTHON_MAJOR_VERSION == 2:
+    # enable utf8 compatibility
+    reload(sys)
+    sys.setdefaultencoding('utf8')
 
 terminal = Terminal()
 
 def styled_print(style, text, interactive_only=False):
+
     stream = sys.stderr if interactive_only else sys.stdout
     if stream.isatty():
 
@@ -24,14 +29,18 @@ def styled_print(style, text, interactive_only=False):
         else:
             append = ""
 
-        stream.write("".join((
+        text = "".join((
             getattr(terminal, style),
             text,
             terminal.normal,
             append
-        )))
-    else:
-        stream.write(text)
+        ))
+
+    stream.write(text)
+
+    # make unbuffered writes in Python 3
+    if PYTHON_MAJOR_VERSION == 3:
+        stream.flush()
 
 def print_default(text, interactive_only=False):
     styled_print("normal", text, interactive_only)
