@@ -40,7 +40,7 @@ class Cli(object):
     def _init_logging(self):
         logging.getLogger().name = "yana"
         self.arg_parser.add_argument('-d', '--debug', action='store_true',
-                            default=False, help='Turn on debug messages?')
+                            default=False, help='turn on debug messages')
         if '-d' in argv:
             logging.getLogger().setLevel(logging.DEBUG)
 
@@ -72,7 +72,7 @@ class Cli(object):
 
             # add the path argument per default after all other arguments
             sub_parser.add_argument('path', type=str, nargs="*", default=".",
-                                    help='Directory or file to operate on.')
+                                    help='directory or file to operate on')
 
     @classmethod
     def find_notes(cls, paths, notes_paths_q):
