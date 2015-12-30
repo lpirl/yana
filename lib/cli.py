@@ -9,6 +9,7 @@ import re
 from os import remove
 from os.path import isfile, isdir, join as path_join
 from json import dump, load
+from fnmatch import filter as fnmatch_filter
 
 from lib import QUEUE_END_SYMBOL, CACHE_DIR
 import plugins as plugins_module
@@ -74,30 +75,32 @@ class Cli(object):
             sub_parser.add_argument('note', type=str, nargs="*", default=".",
                                     help='target note (lookup order: ' +
                                         'number from last listing, ' +
-                                        'matching file name in last listing, ' +
+                                        'matching path in last listing, ' +
                                         'directory or file.')
 
     @classmethod
-    def _find_notes_by_number_in_cache(cls, paths, cached_paths, q_put):
+    def _find_notes_by_number_in_cache(cls, target_notes, cached_paths, q_put):
         """
         Finds recently found notes, referenced by a number.
         """
         logging.debug("finding by number in cache")
         cache_size = len(cached_paths)
-        for path in paths:
-            if path.isdigit():
-                index = int(path) - 1
+        for target_note in target_notes:
+            if target_note.isdigit():
+                index = int(target_note) - 1
                 if -1 < index and index < cache_size:
                     q_put(cached_paths[index])
 
     @classmethod
-    def _find_notes_match_file_name_in_cache(cls, paths, cached_paths, q_put):
+    def _find_notes_match_file_name_in_cache(cls, target_notes, cached_paths, q_put):
         """
         Finds recently found notes by matching the arguments with the
         cached file names.
         """
         logging.debug("finding by match in cache")
-        pass
+        for target_note in target_notes:
+            for matched_path in fnmatch_filter(cached_paths, target_note):
+                q_put(matched_path)
 
     @classmethod
     def _find_notes_in_file_system(cls, paths, q_put):
@@ -172,8 +175,11 @@ class Cli(object):
 
         notes_paths_q.put(QUEUE_END_SYMBOL)
 
+        if not new_cache:
+            logging.error("Could not find any note. Maybe try 'list' again.")
+
         with open(cls.LIST_CACHE_FILE, "w") as f:
-            old_cache = dump(new_cache, f)
+            dump(new_cache, f)
 
     def _run(self):
         """
