@@ -6,13 +6,18 @@ import logging
 from inspect import getmembers, isclass
 from multiprocessing import Process, Queue
 import re
-from os.path import isfile, isdir
+from os import remove
+from os.path import isfile, isdir, join as path_join
+from json import dump, load
 
-from lib import QUEUE_END_SYMBOL
+from lib import QUEUE_END_SYMBOL, CACHE_DIR
+import plugins as plugins_module
 
 # TODO: use https://pypi.python.org/pypi/ConfigArgParse
 
 class Cli(object):
+
+    LIST_CACHE_FILE = path_join(CACHE_DIR, "list_cache.json")
 
     def __init__(self):
 
@@ -49,11 +54,6 @@ class Cli(object):
         Acquires and initializes all plugins (classes) in the module
         ``plugins``.
         """
-
-        # we scope this import into this function so that plugins can
-        # import this module
-        import plugins as plugins_module
-
         sub_parsers = self.arg_parser.add_subparsers(help="sub command",
                                                     dest='subcommand')
 
@@ -71,28 +71,47 @@ class Cli(object):
             self.plugins[cls.sub_command] = cls(sub_parser)
 
             # add the path argument per default after all other arguments
-            sub_parser.add_argument('path', type=str, nargs="*", default=".",
-                                    help='directory or file to operate on')
+            sub_parser.add_argument('note', type=str, nargs="*", default=".",
+                                    help='target note (lookup order: ' +
+                                        'number from last listing, ' +
+                                        'matching file name in last listing, ' +
+                                        'directory or file.')
 
     @classmethod
-    def find_notes(cls, paths, notes_paths_q):
+    def _find_notes_by_number_in_cache(cls, paths, cached_paths, q_put):
         """
-        Finds all notes under ``path`` and puts them into the
-        ``notes_paths_q``.
+        Finds recently found notes, referenced by a number.
+        """
+        logging.debug("finding by number in cache")
+        cache_size = len(cached_paths)
+        for path in paths:
+            if path.isdigit():
+                index = int(path) - 1
+                if -1 < index and index < cache_size:
+                    q_put(cached_paths[index])
+
+    @classmethod
+    def _find_notes_match_file_name_in_cache(cls, paths, cached_paths, q_put):
+        """
+        Finds recently found notes by matching the arguments with the
+        cached file names.
+        """
+        logging.debug("finding by match in cache")
+        pass
+
+    @classmethod
+    def _find_notes_in_file_system(cls, paths, q_put):
+        """
+        Finds notes in file system according to configured pattern.
         """
         # TODO: spawn new process if crossing fs boundaries?
-        put = notes_paths_q.put
 
         dir_paths = []
         for path in paths:
             if isfile(path):
-                put(path)
+                notes_paths_q(path)
             elif isdir(path):
               dir_paths.append(path)
-            else:
-              logging.error("Cannot find '%s'" % path)
-              put(QUEUE_END_SYMBOL)
-              exit(1)
 
         # TODO: make this configurable:
         match = re.compile('.*\.note$').match
@@ -110,7 +129,7 @@ class Cli(object):
                         continue
                     if not match(entry_name):
                         continue
-                    put(entry_path)
+                    q_put(entry_path)
         except ImportError:
             # cPython < 3.5
             from os import walk
@@ -119,9 +138,42 @@ class Cli(object):
                 for root, _, files in walk(dir_path):
                     for file_path in files:
                         if match(file_path):
-                            put(path_join(root, file_path))
-        finally:
-            put(QUEUE_END_SYMBOL)
+                            q_put(path_join(root, file_path))
+
+    @classmethod
+    def find_notes(cls, target_notes, notes_paths_q):
+        """
+        Finds all notes using all available lookups and puts them into
+        the ``notes_paths_q``.
+        """
+
+        old_cache = []
+        if isfile(cls.LIST_CACHE_FILE):
+            with open(cls.LIST_CACHE_FILE, "r") as f:
+                try:
+                    old_cache = load(f)
+                except ValueError:
+                    remove(cls.LIST_CACHE_FILE)
+            # TODO: cleanup cache
+
+        new_cache = list()
+
+        def q_dedup_put(path):
+            if path not in new_cache:
+                new_cache.append(path)
+                notes_paths_q.put(path)
+
+        # TODO: parallelize?
+        cls._find_notes_by_number_in_cache(target_notes, old_cache,
+                                            q_dedup_put)
+        cls._find_notes_match_file_name_in_cache(target_notes, old_cache,
+                                                    q_dedup_put)
+        cls._find_notes_in_file_system(target_notes, q_dedup_put)
+
+        notes_paths_q.put(QUEUE_END_SYMBOL)
+
+        with open(cls.LIST_CACHE_FILE, "w") as f:
+            old_cache = dump(new_cache, f)
 
     def _run(self):
         """
@@ -130,7 +182,7 @@ class Cli(object):
         args = self.args
         notes_paths_q = Queue(False)
         find_process = Process(target=self.find_notes,
-                                args=(args.path, notes_paths_q))
+                                args=(args.note, notes_paths_q))
         find_process.start()
 
         plugin = self.plugins[args.subcommand]

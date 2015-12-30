@@ -43,8 +43,8 @@ class AbstractBasePlugin(object):
         Runs the plugin if the user-provided sub command matches the
         sub command of this class.
         """
-        for path in iter(notes_paths_q.get, None):
-            self.run_on_path(args, path)
+        for target_note in iter(notes_paths_q.get, None):
+            self.run_on_path(args, target_note)
 
     @abc.abstractmethod
     def run_on_path(self, args, note_path):
