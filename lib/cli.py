@@ -73,10 +73,10 @@ class Cli(object):
 
             # add the path argument per default after all other arguments
             sub_parser.add_argument('note', type=str, nargs="*", default=".",
-                                    help='target note (lookup order: ' +
-                                        'number from last listing, ' +
-                                        'matching path in last listing, ' +
-                                        'directory or file.')
+                                    help="target note (lookup order: " +
+                                        "index from last run's notes, " +
+                                        "glob match in last run's paths, " +
+                                        "directory or file.")
 
     @classmethod
     def _find_notes_by_number_in_cache(cls, target_notes, cached_paths, q_put):
@@ -112,7 +112,7 @@ class Cli(object):
         dir_paths = []
         for path in paths:
             if isfile(path):
-                notes_paths_q(path)
+                q_put(path)
             elif isdir(path):
               dir_paths.append(path)
 
