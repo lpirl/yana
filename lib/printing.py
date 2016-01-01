@@ -14,7 +14,7 @@ if PYTHON_MAJOR_VERSION == 2:
     reload(sys)
     sys.setdefaultencoding('utf8')
 
-terminal = Terminal()
+TERMINAL = Terminal()
 
 def styled_print(style, text, interactive_only=False):
 
@@ -30,9 +30,9 @@ def styled_print(style, text, interactive_only=False):
             append = ""
 
         text = "".join((
-            getattr(terminal, style),
+            getattr(TERMINAL, style),
             text,
-            terminal.normal,
+            TERMINAL.normal,
             append
         ))
 

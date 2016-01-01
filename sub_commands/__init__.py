@@ -1,3 +1,5 @@
+# encoding: utf8
+
 import abc
 
 from lib import QUEUE_END_SYMBOL

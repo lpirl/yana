@@ -1,3 +1,9 @@
+"""
+This module contains all finders (plugins).
+
+A finder finds notes according to the targets a user specified.
+"""
+
 import abc
 
 from lib.plugin_utils import load_classes
@@ -20,7 +26,14 @@ class AbstractBaseFinder(object):
 
     @abc.abstractmethod
     def find(self, target_notes, cached_paths, notes_paths_q_put):
-        # TODO
+        """
+        This is where the implementation goes.
+        Finders are required to submit found paths to notes via
+        ``notes_paths_q_put``.
+        To do so, they probably want to use the information provided
+        through ``target_notes`` and possibly the last runs'
+        ``cached_paths``.
+        """
         pass
 
 # import plugin classes from sub modules:
