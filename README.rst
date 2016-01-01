@@ -4,7 +4,8 @@ yana --help
 
 usage: yana.py [-h] [-d] {list,show} ...
 
-This is Yet Another Notes App.
+Even though this builds on what will persist (plaint text files and a file
+system) it is still only Yet Another Notes App.
 
 positional arguments:
   {list,show}  sub command
@@ -14,6 +15,8 @@ positional arguments:
 optional arguments:
   -h, --help   show this help message and exit
   -d, --debug  turn on debug messages (default: False)
+
+Now you know.
 
 
 yana list --help
