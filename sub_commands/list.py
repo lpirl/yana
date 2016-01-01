@@ -13,7 +13,7 @@ class List(AbstractBaseSubCommand):
     def post_init(self):
         self.list_count = 0
 
-    def run_on_path(self, args, note_path):
+    def invoke_on_path(self, args, note_path):
         self.list_count += 1
         print_colored("%u " % self.list_count, True)
 

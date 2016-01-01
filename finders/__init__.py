@@ -7,7 +7,9 @@ class AbstractBaseFinder(object):
     All finders must inherit from this base class.
     """
 
-    def __init__(self):
+    def __init__(self, args_parser):
+
+        self.args_parser = args_parser
 
         # TODO
 
@@ -21,7 +23,7 @@ class AbstractBaseFinder(object):
         """
 
     @abc.abstractmethod
-    def run(self):
+    def find(self, target_notes, cached_paths, notes_paths_q_put):
         # TODO
         pass
 

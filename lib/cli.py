@@ -162,17 +162,17 @@ class Cli(object):
 
         new_cache = list()
 
-        def q_dedup_put(path):
+        def q_deduping_and_caching_put(path):
             if path not in new_cache:
                 new_cache.append(path)
                 notes_paths_q.put(path)
 
         # TODO: parallelize?
         cls._find_notes_by_number_in_cache(target_notes, old_cache,
-                                            q_dedup_put)
+                                            q_deduping_and_caching_put)
         cls._find_notes_match_file_name_in_cache(target_notes, old_cache,
-                                                    q_dedup_put)
-        cls._find_notes_in_file_system(target_notes, q_dedup_put)
+                                                    q_deduping_and_caching_put)
+        cls._find_notes_in_file_system(target_notes, q_deduping_and_caching_put)
 
         notes_paths_q.put(QUEUE_END_SYMBOL)
 
@@ -194,6 +194,6 @@ class Cli(object):
 
         sub_command = self.sub_commands[args.subcommand]
         logging.debug("running sub command: '%s'" % sub_command.__class__.__name__)
-        sub_command.run(args, notes_paths_q)
+        sub_command.invoke(args, notes_paths_q.get)
 
         find_process.join()
