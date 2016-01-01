@@ -20,12 +20,12 @@ class AbstractBaseSubCommand(object):
     Short description of sub command.
     """
 
-    def __init__(self, args_parser):
+    def __init__(self, arg_parser):
 
         assert self.sub_command is not None
         assert self.sub_command_help is not None
 
-        self.args_parser = args_parser
+        self.arg_parser = arg_parser
 
         self.post_init()
 
@@ -52,7 +52,5 @@ class AbstractBaseSubCommand(object):
         implement ``invoke(…)`` themselves.
         """
 
-"""
-Import all plugin classes dynamically
-"""
+# import plugin classes from sub modules:
 SUB_COMMAND_CLASSES = load_classes(__path__, AbstractBaseSubCommand)

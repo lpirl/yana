@@ -1,4 +1,3 @@
-import logging
 from os import sep as pathsep, linesep
 from os.path import split as path_split
 

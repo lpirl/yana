@@ -3,7 +3,7 @@ A few helpers to have a unified printing facility (similar to logging).
 """
 
 import sys
-from os import linesep, fdopen
+from os import linesep
 
 from blessings import Terminal
 

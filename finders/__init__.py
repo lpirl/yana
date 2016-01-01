@@ -7,12 +7,8 @@ class AbstractBaseFinder(object):
     All finders must inherit from this base class.
     """
 
-    def __init__(self, args_parser):
-
-        self.args_parser = args_parser
-
-        # TODO
-
+    def __init__(self, arg_parser):
+        self.arg_parser = arg_parser
         self.post_init()
 
     def post_init(self):
@@ -27,7 +23,5 @@ class AbstractBaseFinder(object):
         # TODO
         pass
 
-"""
-Import all plugins
-"""
+# import plugin classes from sub modules:
 FINDER_CLASSES = load_classes(__path__, AbstractBaseFinder)
