@@ -3,10 +3,10 @@ from shutil import copyfileobj
 from sys import stdout
 from os import linesep
 
-from plugins import AbstractBasePlugin
+from sub_commands import AbstractBaseSubCommand
 from lib.printing import print_colored
 
-class Show(AbstractBasePlugin):
+class Show(AbstractBaseSubCommand):
 
     sub_command = "show"
     sub_command_help = "show notes"

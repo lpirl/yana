@@ -12,7 +12,8 @@ from json import dump, load
 from fnmatch import filter as fnmatch_filter
 
 from lib import QUEUE_END_SYMBOL, CACHE_DIR
-import plugins as plugins_module
+from sub_commands import SUB_COMMAND_CLASSES
+from finders import FINDER_CLASSES
 
 # TODO: use https://pypi.python.org/pypi/ConfigArgParse
 
@@ -24,7 +25,7 @@ class Cli(object):
 
         self._init_arg_parser()
         self._init_logging()
-        self._init_plugins()
+        self._init_sub_commands()
 
         self._parse_args()
         self._run()
@@ -50,26 +51,23 @@ class Cli(object):
         if '-d' in argv:
             logging.getLogger().setLevel(logging.DEBUG)
 
-    def _init_plugins(self):
+    def _init_sub_commands(self):
         """
-        Acquires and initializes all plugins (classes) in the module
-        ``plugins``.
+        Initializes all sub commands (classes) from the module
+        ``sub_commands``.
         """
         sub_parsers = self.arg_parser.add_subparsers(help="sub command",
                                                     dest='subcommand')
 
-        plugin_classes = [t[1] for t in
-                            getmembers(plugins_module, isclass)
-                            if not t[0].startswith("Abstract")]
-        logging.debug("found plugins: %s" % str(
-            [s.__name__ for s in plugin_classes]
+        logging.debug("found sub_commands: %s" % str(
+            [s.__name__ for s in SUB_COMMAND_CLASSES]
         ))
 
-        self.plugins = {}
-        for cls in plugin_classes:
+        self.sub_commands = {}
+        for cls in SUB_COMMAND_CLASSES:
             sub_parser = sub_parsers.add_parser(cls.sub_command,
                                                 help=cls.sub_command_help)
-            self.plugins[cls.sub_command] = cls(sub_parser)
+            self.sub_commands[cls.sub_command] = cls(sub_parser)
 
             # add the path argument per default after all other arguments
             sub_parser.add_argument('note', type=str, nargs="*", default=".",
@@ -191,8 +189,8 @@ class Cli(object):
                                 args=(args.note, notes_paths_q))
         find_process.start()
 
-        plugin = self.plugins[args.subcommand]
-        logging.debug("running plugin: '%s'" % plugin.__class__.__name__)
-        plugin.run(args, notes_paths_q)
+        sub_command = self.sub_commands[args.subcommand]
+        logging.debug("running sub command: '%s'" % sub_command.__class__.__name__)
+        sub_command.run(args, notes_paths_q)
 
         find_process.join()

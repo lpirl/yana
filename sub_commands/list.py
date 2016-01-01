@@ -2,10 +2,10 @@ import logging
 from os import sep as pathsep, linesep
 from os.path import split as path_split
 
-from plugins import AbstractBasePlugin
+from sub_commands import AbstractBaseSubCommand
 from lib.printing import print_colored, print_default, print_highlighted
 
-class List(AbstractBasePlugin):
+class List(AbstractBaseSubCommand):
 
     sub_command = "list"
     sub_command_help = "lists notes"
