@@ -1,6 +1,6 @@
 import abc
-from pkgutil import walk_packages
-from inspect import getmembers, isclass
+
+from lib.plugin_utils import load_classes
 
 class AbstractBaseFinder(object):
     """
@@ -26,17 +26,6 @@ class AbstractBaseFinder(object):
         pass
 
 """
-Import all plugins dynamically
+Import all plugins
 """
-FINDER_CLASSES = set()
-for module_loader, module_name, _ in walk_packages(__path__):
-    module = module_loader.find_module(module_name).load_module(module_name)
-    for cls_name, cls in getmembers(module):
-        if not isclass(cls):
-            continue
-        if not issubclass(cls, AbstractBaseFinder):
-            continue
-        if cls_name.startswith("Abstract"):
-            continue
-        exec('from %s import %s' % (module_name, cls_name))
-        exec('FINDER_CLASSES.add(%s)' % (module_name, cls_name))
+FINDER_CLASSES = load_classes(__path__, AbstractBaseFinder)

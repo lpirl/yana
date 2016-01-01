@@ -1,8 +1,7 @@
 import abc
-from pkgutil import walk_packages
-from inspect import getmembers, isclass
 
 from lib import QUEUE_END_SYMBOL
+from lib.plugin_utils import load_classes
 
 class AbstractBaseSubCommand(object):
     """
@@ -56,15 +55,4 @@ class AbstractBaseSubCommand(object):
 """
 Import all plugin classes dynamically
 """
-SUB_COMMAND_CLASSES = set()
-for module_loader, module_name, _ in walk_packages(__path__):
-    module = module_loader.find_module(module_name).load_module(module_name)
-    for cls_name, cls in getmembers(module):
-        if not isclass(cls):
-            continue
-        if not issubclass(cls, AbstractBaseSubCommand):
-            continue
-        if cls_name.startswith("Abstract"):
-            continue
-        exec('from %s import %s' % (module_name, cls_name))
-        exec('SUB_COMMAND_CLASSES.add(%s)' % cls_name)
+SUB_COMMAND_CLASSES = load_classes(__path__, AbstractBaseSubCommand)
