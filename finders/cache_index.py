@@ -23,5 +23,5 @@ class CacheIndexFinder(AbstractBaseFinder):
                 index = int(target_note) - 1
                 if -1 < index and index < cache_size:
                     path = cached_paths[index]
-                    logging.debug("found by index in cache: %s", path)
+                    logging.info("found by index in cache: %s", path)
                     notes_paths_q_put(path)

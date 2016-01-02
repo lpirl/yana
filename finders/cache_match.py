@@ -8,7 +8,7 @@ from fnmatch import filter as fnmatch_filter
 
 from finders import AbstractBaseFinder
 
-class CacheIndexFinder(AbstractBaseFinder):
+class CacheMatchFinder(AbstractBaseFinder):
     """
     A finder that returns items from the cache that match the
     user-provided pattern.
@@ -17,5 +17,5 @@ class CacheIndexFinder(AbstractBaseFinder):
     def find(self, target_notes, cached_paths, notes_paths_q_put):
         for target_note in target_notes:
             for matched_path in fnmatch_filter(cached_paths, target_note):
-                logging.debug("found by match in cache: %s", matched_path)
+                logging.info("found by match in cache: %s", matched_path)
                 notes_paths_q_put(matched_path)

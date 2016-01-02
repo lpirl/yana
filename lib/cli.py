@@ -64,12 +64,18 @@ class Cli(object):
         if len(argv) == 1:
             argv.append("-h")
 
-        self.args = self.arg_parser.parse_args()
+        args =  self.arg_parser.parse_args()
+        self.args = args
+
+        if args.verbose:
+            logging.getLogger().setLevel(logging.INFO)
 
     def _init_logging(self):
         logging.getLogger().name = "yana"
         self.arg_parser.add_argument('-d', '--debug', action='store_true',
                             default=False, help='turn on debug messages')
+        self.arg_parser.add_argument('-v', '--verbose', action='store_true',
+                            default=False, help='turn on verbose messages')
         if '-d' in argv:
             logging.getLogger().setLevel(logging.DEBUG)
 

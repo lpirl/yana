@@ -26,7 +26,7 @@ class FileSystemFinder(AbstractBaseFinder):
                     continue
                 if not match(entry_name):
                     continue
-                logging.debug("found in file system: %s", dir_entry.path)
+                logging.info("found in file system: %s", dir_entry.path)
                 notes_paths_q_put(dir_entry.path)
 
     def _find_walk(self, target_notes, match, notes_paths_q_put):
@@ -42,7 +42,7 @@ class FileSystemFinder(AbstractBaseFinder):
                 for file_path in files:
                     if match(file_path):
                         full_path = path_join(root, file_path)
-                        logging.debug("found in file system: %s", full_path)
+                        logging.info("found in file system: %s", full_path)
                         notes_paths_q_put(full_path)
 
 
