@@ -13,6 +13,8 @@ class ShowSubCommand(AbstractBaseSubCommand):
             default=False, help='run editor for all notes at once')
         self.arg_parser.add_argument('-t', '--terminal', action='store_true',
             default=False, help='use an terminal editor')
+        self.arg_parser.add_argument('-w', '--wait', action='store_true',
+            default=False, help='wait for the editor to finish')
 
     def invoke(self, args, notes_paths_q_get):
         notes_paths = list(iter(notes_paths_q_get, None))
@@ -41,5 +43,5 @@ class ShowSubCommand(AbstractBaseSubCommand):
         logging.debug("executing '%s'", ' '.join(cmd))
         sub_process = Popen(cmd, **popen_kwargs)
 
-        if args.terminal:
+        if args.terminal or args.wait:
             sub_process.wait()
