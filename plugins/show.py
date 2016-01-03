@@ -2,10 +2,11 @@ from shutil import copyfileobj
 from sys import stdout
 from os import linesep
 
-from sub_commands import AbstractBaseSubCommand
+from plugins import Registry, AbstractBaseSubCommand
 from lib.printing import print_colored
 
-class Show(AbstractBaseSubCommand):
+@Registry.register_sub_command
+class ShowSubCommand(AbstractBaseSubCommand):
 
     sub_command = "show"
     sub_command_help = "show notes"

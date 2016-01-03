@@ -2,7 +2,7 @@ SUBCOMMANDS = "" $(shell yana --help | egrep -o "\{(.*)\}" | head -n1 | \
 							tr -d \{\} | tr "," " ")
 
 pylint:
-	pylint yana lib sub_commands finders
+	pylint yana lib plugins
 
 readme:
 	for s in ${SUBCOMMANDS}; do \

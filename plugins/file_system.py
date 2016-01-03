@@ -2,8 +2,9 @@ import re
 from os.path import isfile, isdir
 import logging
 
-from finders import AbstractBaseFinder
+from plugins import Registry, AbstractBaseFinder
 
+@Registry.register_finder
 class FileSystemFinder(AbstractBaseFinder):
     """
     A finder that searches within the file system.

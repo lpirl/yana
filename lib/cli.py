@@ -8,8 +8,7 @@ from os.path import isfile, join as path_join
 from json import dump, load
 
 from lib import QUEUE_END_SYMBOL, CACHE_DIR
-from sub_commands import SUB_COMMAND_CLASSES
-from finders import FINDER_CLASSES
+from plugins import Registry
 
 # TODO: use https://pypi.python.org/pypi/ConfigArgParse
 
@@ -88,7 +87,7 @@ class Cli(object):
 
 
         self.sub_commands = {}
-        for cls in SUB_COMMAND_CLASSES:
+        for cls in Registry.sub_commands:
             logging.debug("initializing sub command: %s", cls.__name__)
 
             sub_parser = sub_parsers.add_parser(cls.sub_command,
@@ -107,7 +106,7 @@ class Cli(object):
         Initializes all finder classes from the corresponding module.
         """
         self.finders = []
-        for cls in FINDER_CLASSES:
+        for cls in Registry.finders:
             logging.debug("initializing finder: %s", cls.__name__)
             self.finders.append(cls(self.arg_parser))
 
