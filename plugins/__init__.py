@@ -79,13 +79,13 @@ class AbstractBaseSubCommand(AbstractBasePlugin):
         for target_note in iter(notes_paths_q_get, None):
             self.invoke_on_path(args, target_note)
 
-    @abc.abstractmethod
     def invoke_on_path(self, args, note_path):
         """
         Called by ``invoke(…)`` per path.
         Usually, plugins can overwide this function and do not have to
         implement ``invoke(…)`` themselves.
         """
+        pass
 
 
 class AbstractBaseFinder(AbstractBasePlugin):
