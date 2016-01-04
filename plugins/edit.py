@@ -10,9 +10,9 @@ class ShowSubCommand(AbstractBaseSubCommand):
 
     def post_init(self):
         self.arg_parser.add_argument('-s', '--separate', action='store_true',
-            default=False, help='run editor for all notes at once')
+            default=False, help='run editor for every note separately')
         self.arg_parser.add_argument('-t', '--terminal', action='store_true',
-            default=False, help='use an terminal editor')
+            default=False, help='use a terminal editor')
         self.arg_parser.add_argument('-w', '--wait', action='store_true',
             default=False, help='wait for the editor to finish')
 

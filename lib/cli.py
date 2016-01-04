@@ -85,6 +85,8 @@ class Cli(object):
         sub_parsers = self.arg_parser.add_subparsers(help="sub command",
                                                     dest='subcommand')
 
+        assert self.finders, "finders must be initialized first"
+        finding_help = ', '.join((f.finds for f in self.finders))
 
         self.sub_commands = {}
         for cls in Registry.sub_commands:
@@ -96,10 +98,8 @@ class Cli(object):
 
             # add the path argument per default after all other arguments
             sub_parser.add_argument('note', type=str, nargs="*", default=".",
-                                    help="target note (lookup order: " +
-                                        "index from last run's notes, " +
-                                        "glob match in last run's paths, " +
-                                        "directory or file.")
+                                    help="target note (strategies: %s)." %
+                                    finding_help)
 
     def _init_finders(self):
         """

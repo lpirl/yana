@@ -13,6 +13,8 @@ class LastRunIndexFinder(AbstractBaseFinder):
     A finder that returns paths from the last run addressed by their index.
     """
 
+    finds = "listed during last run by their index"
+
     def find(self, target_notes, previous_path, notes_paths_q_put):
         """
         Returns the all (existing) ``previous_path`` that are possibly
@@ -34,6 +36,8 @@ class LastRunMatchFinder(AbstractBaseFinder):
     A finder that returns paths from the last run that match a (possibly)
     user-provided pattern.
     """
+
+    finds = "listed during last run by matching paths"
 
     def find(self, target_notes, previous_path, notes_paths_q_put):
         for target_note in target_notes:

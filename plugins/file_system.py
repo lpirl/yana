@@ -10,6 +10,8 @@ class FileSystemFinder(AbstractBaseFinder):
     A finder that searches within the file system.
     """
 
+    finds = "recursively in the file system"
+
     def _find_scandir(self, target_notes, match, notes_paths_q_put):
         """
         Search for matching files using the new and fast ``os.scandir``.

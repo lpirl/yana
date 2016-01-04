@@ -93,6 +93,18 @@ class AbstractBaseFinder(AbstractBasePlugin):
     All finders should from this base class.
     """
 
+    finds = None
+    """
+    A very short and descriptive text saying what this finder can find.
+    It must fit into "This finder finds notes <YXZ>"
+    """
+
+    def __init__(self, *args, **kwargs):
+
+        assert self.finds is not None
+
+        super(AbstractBaseFinder, self).__init__(*args, **kwargs)
+
     @abc.abstractmethod
     def find(self, target_notes, previous_path, notes_paths_q_put):
         """
