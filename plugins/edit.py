@@ -8,12 +8,12 @@ class ShowSubCommand(AbstractBaseSubCommand):
     sub_command = "edit"
     sub_command_help = "edit notes"
 
-    def post_init(self):
-        self.arg_parser.add_argument('-s', '--separate', action='store_true',
+    def post_init(self, arg_parser):
+        arg_parser.add_argument('-s', '--separate', action='store_true',
             default=False, help='run editor for every note separately')
-        self.arg_parser.add_argument('-t', '--terminal', action='store_true',
+        arg_parser.add_argument('-t', '--terminal', action='store_true',
             default=False, help='use a terminal editor')
-        self.arg_parser.add_argument('-w', '--wait', action='store_true',
+        arg_parser.add_argument('-w', '--wait', action='store_true',
             default=False, help='wait for the editor to finish')
 
     def invoke(self, args, notes_paths_q_get):

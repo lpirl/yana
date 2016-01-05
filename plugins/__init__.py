@@ -59,10 +59,9 @@ class AbstractBasePlugin(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, arg_parser):
-        self.arg_parser = arg_parser
-        self.post_init()
+        self.post_init(arg_parser)
 
-    def post_init(self):
+    def post_init(self, arg_parser):
         """
         Hook for subclasses.
 
@@ -126,14 +125,14 @@ class AbstractBaseFinder(AbstractBasePlugin):
         super(AbstractBaseFinder, self).__init__(*args, **kwargs)
 
     @abc.abstractmethod
-    def find(self, target_notes, previous_path, notes_paths_q_put):
+    def find(self, args, target_notes, previous_paths, notes_paths_q_put):
         """
         This is where the implementation goes.
         Finders are required to submit found paths to notes via
         ``notes_paths_q_put``.
         To do so, they probably want to use the information provided
         through ``target_notes`` and possibly the last runs'
-        ``previous_path``.
+        ``previous_paths``.
         """
         pass
 

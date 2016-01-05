@@ -134,7 +134,8 @@ class Cli(object):
 
         for finder in self.finders:
             logging.debug("running finder: %s", finder.__class__.__name__)
-            finder.find(target_notes, old_cache, deduping_and_caching_q_put)
+            finder.find(self.args, target_notes, old_cache,
+                        deduping_and_caching_q_put)
 
         notes_paths_q_put(QUEUE_END_SYMBOL)
 

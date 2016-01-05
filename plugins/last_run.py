@@ -15,7 +15,7 @@ class LastRunIndexFinder(AbstractBaseFinder):
 
     finds = "listed during last run by their index"
 
-    def find(self, target_notes, previous_path, notes_paths_q_put):
+    def find(self, args, target_notes, previous_path, notes_paths_q_put):
         """
         Returns the all (existing) ``previous_path`` that are possibly
         specified in ``target_notes``.
@@ -39,7 +39,7 @@ class LastRunMatchFinder(AbstractBaseFinder):
 
     finds = "listed during last run by matching paths"
 
-    def find(self, target_notes, previous_path, notes_paths_q_put):
+    def find(self, args, target_notes, previous_path, notes_paths_q_put):
         for target_note in target_notes:
             for matched_path in fnmatch_filter(previous_path, target_note):
                 logging.info("found by match in cache: %s", matched_path)

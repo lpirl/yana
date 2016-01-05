@@ -12,7 +12,12 @@ class FileSystemFinder(AbstractBaseFinder):
 
     finds = "recursively in the file system"
 
-    def _find_scandir(self, target_notes, match, notes_paths_q_put):
+    def post_init(self, arg_parser):
+        arg_parser.add_argument('-n', '--new', action='store_true',
+            default=False, help='ignore non-existing notes / ' +
+            'allow new notes to be created')
+
+    def _find_scandir(self, args, target_notes, match, notes_paths_q_put):
         """
         Search for matching files using the new and fast ``os.scandir``.
         Matching files will be submitted via ``notes_paths_q_put``.
@@ -32,7 +37,7 @@ class FileSystemFinder(AbstractBaseFinder):
                 logging.info("found in file system: %s", dir_entry.path)
                 notes_paths_q_put(dir_entry.path)
 
-    def _find_walk(self, target_notes, match, notes_paths_q_put):
+    def _find_walk(self, args, target_notes, match, notes_paths_q_put):
         """
         Search for matching files w/o new (and fast ``os.scandir``).
         Matching files will be submitted via ``notes_paths_q_put``.
@@ -49,7 +54,7 @@ class FileSystemFinder(AbstractBaseFinder):
                         notes_paths_q_put(full_path)
 
 
-    def find(self, target_notes, _, notes_paths_q_put):
+    def find(self, args, target_notes, _, notes_paths_q_put):
         """
         Search for matching files in the file system.
         """
@@ -62,12 +67,12 @@ class FileSystemFinder(AbstractBaseFinder):
         for path in target_notes:
             if isdir(path):
                 dir_paths.append(path)
-            elif isfile(path) and match(path):
+            elif (isfile(path) or args.new) and match(path):
                 notes_paths_q_put(path)
 
         try:
             # cPython >= 3.5
-            self._find_scandir(target_notes, match, notes_paths_q_put)
+            self._find_scandir(args, target_notes, match, notes_paths_q_put)
         except ImportError:
             # cPython < 3.5
-            self._find_walk(target_notes, match, notes_paths_q_put)
+            self._find_walk(args, target_notes, match, notes_paths_q_put)

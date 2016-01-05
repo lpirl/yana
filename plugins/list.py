@@ -10,7 +10,7 @@ class ListSubCommand(AbstractBaseSubCommand):
     sub_command = "list"
     sub_command_help = "lists notes"
 
-    def post_init(self):
+    def post_init(self, arg_parser):
         self.list_count = 0
 
     def invoke_on_path(self, args, note_path):
