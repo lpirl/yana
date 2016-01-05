@@ -1,5 +1,25 @@
 # encoding: utf8
 
+"""
+This module contains the base implementations for all kinds of plugins.
+
+Sub modules contain the plugins itself.
+
+Why things are the way they are:
+
+Plugins have to register explicitly because it is less import magic
+(and remember Zen 2 of Python: explicit is better than implicit).
+
+Different kinds of plugins share a common top module so the can have
+shared code more easily (e.g. w/i one sub module).
+
+The superclass for all kinds of plugins is not unified so we do not have
+to call all plugins on all extension points.
+Also the shared state within one respective object of such a class might
+turn out to be an illusion when different kinds of plugins are distributed
+across processes. This would probably be confusion to program.
+"""
+
 import abc
 from pkgutil import walk_packages
 import logging
