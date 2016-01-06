@@ -1,6 +1,6 @@
 import logging
 from plugins import Registry, AbstractBaseSubCommand
-from subprocess import Popen, call
+from subprocess import Popen
 
 @Registry.register_sub_command
 class ShowSubCommand(AbstractBaseSubCommand):
