@@ -16,6 +16,9 @@ class FileSystemFinder(AbstractBaseFinder):
         arg_parser.add_argument('-n', '--new', action='store_true',
             default=False, help='ignore non-existing notes / ' +
             'allow new notes to be created')
+        arg_parser.add_argument('-m', '--match', nargs='?',
+            default=r'.*\.note$', help='regular expression used to ' +
+            'identify notes paths')
 
     def _find_scandir(self, args, target_notes, match, notes_paths_q_put):
         """
@@ -58,10 +61,9 @@ class FileSystemFinder(AbstractBaseFinder):
         """
         Search for matching files in the file system.
         """
-        # TODO: spawn new process if crossing fs boundaries?
+        # IDEA: spawn new process/thread if crossing fs boundaries?
 
-        # TODO: make this configurable:
-        match = re.compile(r'.*\.note$').match
+        match = re.compile(args.match).match
 
         dir_paths = []
         for path in target_notes:
