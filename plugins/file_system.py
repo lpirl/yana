@@ -14,11 +14,11 @@ class FileSystemFinder(AbstractBaseFinder):
 
     def post_init(self, arg_parser):
         arg_parser.add_argument('-n', '--new', action='store_true',
-            default=False, help='ignore non-existing notes / ' +
-            'allow new notes to be created')
+                                default=False, help='ignore non-existing ' +
+                                'notes / allow new notes to be created')
         arg_parser.add_argument('-m', '--match', nargs='?',
-            default=r'.*\.note$', help='regular expression used to ' +
-            'identify notes paths')
+                                help='regular expression used to identify ' +
+                                'notes paths', default=r'.*\.note$')
 
     def _find_scandir(self, args, target_notes, match, notes_paths_q_put):
         """

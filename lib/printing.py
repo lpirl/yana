@@ -17,7 +17,12 @@ if PYTHON_MAJOR_VERSION == 2:
 TERMINAL = Terminal()
 
 def styled_print(style, text, interactive_only=False):
+    """
+    Unifies all printing facilities (i.e. does actual printing).
 
+    If ``interactive_only``, ``text`` is printed to ``stderr``, so that
+    e.g. programs connected via a pipe do not see it.
+    """
     stream = sys.stderr if interactive_only else sys.stdout
     if stream.isatty():
 
@@ -43,10 +48,19 @@ def styled_print(style, text, interactive_only=False):
         stream.flush()
 
 def print_default(text, interactive_only=False):
+    """
+    Shortcut to print w/o formating.
+    """
     styled_print("normal", text, interactive_only)
 
 def print_colored(text, interactive_only=False):
+    """
+    Shortcut to print colored.
+    """
     styled_print("green", text, interactive_only)
 
 def print_highlighted(text, interactive_only=False):
+    """
+    Shortcut to print highlighted (w/o color).
+    """
     styled_print("bold", text, interactive_only)

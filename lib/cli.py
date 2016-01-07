@@ -1,3 +1,8 @@
+"""
+Contains the main CLI application.
+It contains also the most top-level coordination of the program.
+"""
+
 # encoding: UTF-8
 from sys import argv
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
@@ -9,8 +14,6 @@ from json import dump, load
 
 from lib import QUEUE_END_SYMBOL, CACHE_DIR
 from plugins import Registry
-
-# TODO: use https://pypi.python.org/pypi/ConfigArgParse
 
 class Cli(object):
 
@@ -39,7 +42,7 @@ class Cli(object):
         notes_paths_q = Queue(False)
 
         find_process = Process(target=self.find_notes,
-                                args=(args.note, notes_paths_q.put))
+                               args=(args.note, notes_paths_q.put))
         find_process.start()
 
         sub_command = self.sub_commands[args.subcommand]
@@ -50,9 +53,8 @@ class Cli(object):
 
     def _init_arg_parser(self):
         self.arg_parser = ArgumentParser(
-            description="Yet Another Notes App – but this one builds " +
-                        "on what will persist (plaint text files and " +
-                        "a file system).",
+            description="Yet Another Notes App - but this one builds " +
+            "on what will persist (plaint text files and a file system).",
             epilog="Now you know.",
             formatter_class=ArgumentDefaultsHelpFormatter,
         )
@@ -63,7 +65,7 @@ class Cli(object):
         if len(argv) == 1:
             argv.append("-h")
 
-        args =  self.arg_parser.parse_args()
+        args = self.arg_parser.parse_args()
         self.args = args
 
         if args.verbose:
@@ -72,9 +74,9 @@ class Cli(object):
     def _init_logging(self):
         logging.getLogger().name = "yana"
         self.arg_parser.add_argument('-d', '--debug', action='store_true',
-                            default=False, help='turn on debug messages')
+                                     default=False, help='turn on debug messages')
         self.arg_parser.add_argument('-v', '--verbose', action='store_true',
-                            default=False, help='turn on verbose messages')
+                                     default=False, help='turn on verbose messages')
         if '-d' in argv:
             logging.getLogger().setLevel(logging.DEBUG)
 
@@ -83,7 +85,7 @@ class Cli(object):
         Initializes all sub command classes from the corresponding module.
         """
         sub_parsers = self.arg_parser.add_subparsers(help="sub command",
-                                                    dest='subcommand')
+                                                     dest='subcommand')
 
         assert self.finders, "finders must be initialized first"
         finding_help = ', '.join((f.finds for f in self.finders))
@@ -123,7 +125,8 @@ class Cli(object):
                     old_cache = load(cache_file)
                 except ValueError:
                     remove(self.LIST_CACHE_FILE)
-            # TODO: cleanup cache
+                else:
+                    old_cache = [p for p in old_cache if isfile(p)]
 
         new_cache = list()
 
