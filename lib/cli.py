@@ -11,9 +11,11 @@ from multiprocessing import Process, Queue
 from os import remove
 from os.path import isfile, join as path_join
 from json import dump, load
+from signal import signal, SIGTERM
 
 from lib import QUEUE_END_SYMBOL, CACHE_DIR
 from plugins import Registry
+from lib.printing import print_default
 
 class Cli(object):
 
@@ -30,6 +32,8 @@ class Cli(object):
         self._init_finders()
         self._init_sub_commands()
         self.args = None
+        self.old_cache = None
+        self.new_cache = None
 
     def handle_args(self):
         """
@@ -41,15 +45,20 @@ class Cli(object):
 
         notes_paths_q = Queue(False)
 
-        find_process = Process(target=self.find_notes,
+        find_process = Process(target=self._find_notes,
                                args=(args.note, notes_paths_q.put))
         find_process.start()
 
         sub_command = self.sub_commands[args.subcommand]
         logging.debug("running sub command: '%s'", sub_command.__class__.__name__)
-        sub_command.invoke(args, notes_paths_q.get)
 
-        find_process.join()
+        try:
+            sub_command.invoke(args, notes_paths_q.get)
+        except KeyboardInterrupt:
+            find_process.terminate()
+            print_default("\n")
+        finally:
+            find_process.join()
 
     def _init_arg_parser(self):
         self.arg_parser = ArgumentParser(
@@ -112,38 +121,60 @@ class Cli(object):
             logging.debug("initializing finder: %s", cls.__name__)
             self.finders.append(cls(self.arg_parser))
 
-    def find_notes(self, target_notes, notes_paths_q_put):
+    def load_cached_paths(self):
+        """
+        Loads cached paths.
+        """
+        file_name = self.LIST_CACHE_FILE
+        paths = []
+        if isfile(file_name):
+            with open(file_name, "r") as cache_file:
+                try:
+                    paths = load(cache_file) or []
+                except ValueError:
+                    remove(file_name)
+                else:
+                    paths = [p for p in paths if isfile(p)]
+        self.old_cache = paths
+        self.new_cache = []
+
+    def save_cached_paths(self, *args):
+        """
+        Saves cached paths.
+
+        This method is required to function as a ``os.signal`` handler.
+        """
+        with open(self.LIST_CACHE_FILE, "w") as cache_file:
+            dump(self.new_cache, cache_file)
+        self.new_cache = None
+
+    def _find_notes(self, target_notes, notes_paths_q_put):
         """
         Finds all notes using all available lookups and puts them into
         the ``notes_paths_q``.
         """
 
-        old_cache = []
-        if isfile(self.LIST_CACHE_FILE):
-            with open(self.LIST_CACHE_FILE, "r") as cache_file:
-                try:
-                    old_cache = load(cache_file)
-                except ValueError:
-                    remove(self.LIST_CACHE_FILE)
-                else:
-                    old_cache = [p for p in old_cache if isfile(p)]
-
-        new_cache = list()
-
         def deduping_and_caching_q_put(path):
-            if path not in new_cache:
-                new_cache.append(path)
+            if path not in self.new_cache:
+                self.new_cache.append(path)
                 notes_paths_q_put(path)
 
-        for finder in self.finders:
-            logging.debug("running finder: %s", finder.__class__.__name__)
-            finder.find(self.args, target_notes, old_cache,
-                        deduping_and_caching_q_put)
+        # make cache to be saved when (probably) interrupt by user occurs
+        signal(SIGTERM, self.save_cached_paths)
 
+        self.load_cached_paths()
+
+        try:
+            for finder in self.finders:
+                logging.debug("running finder: %s", finder.__class__.__name__)
+                finder.find(self.args, target_notes, self.old_cache,
+                            deduping_and_caching_q_put)
+        except KeyboardInterrupt:
+            pass
+        else:
+            if not self.new_cache:
+                logging.error(
+                    "Could not find any note. Maybe try 'list' again."
+                )
+            self.save_cached_paths()
         notes_paths_q_put(QUEUE_END_SYMBOL)
-
-        if not new_cache:
-            logging.error("Could not find any note. Maybe try 'list' again.")
-
-        with open(self.LIST_CACHE_FILE, "w") as cache_file:
-            dump(new_cache, cache_file)
