@@ -1,32 +1,71 @@
-# encoding: UTF-8
+"""
+Contains the main CLI application.
+It contains also the most top-level coordination of the program.
+"""
 
+# encoding: UTF-8
 from sys import argv
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import logging
-from inspect import getmembers, isclass
 from multiprocessing import Process, Queue
-import re
-from os.path import isfile, isdir
+from os import remove
+from os.path import isfile, join as path_join
+from json import dump, load
+from signal import signal, SIGTERM
 
-from lib import QUEUE_END_SYMBOL
-
-# TODO: use https://pypi.python.org/pypi/ConfigArgParse
+from lib import QUEUE_END_SYMBOL, CACHE_DIR
+from plugins import Registry
+from lib.printing import print_default
 
 class Cli(object):
 
+    LIST_CACHE_FILE = path_join(CACHE_DIR, "list_cache.json")
+
+
     def __init__(self):
+        """
+        Finds/loads/initializes everything needed for operation.
+        """
 
         self._init_arg_parser()
         self._init_logging()
-        self._init_plugins()
+        self._init_finders()
+        self._init_sub_commands()
+        self.args = None
+        self.old_cache = None
+        self.new_cache = None
 
+    def handle_args(self):
+        """
+        This kicks off the actual operation (i.e. use the users' args,
+        options and sub commands to server the request).
+        """
         self._parse_args()
-        self._run()
+        args = self.args
+
+        notes_paths_q = Queue(False)
+
+        find_process = Process(target=self._find_notes,
+                               args=(args.note, notes_paths_q.put))
+        find_process.start()
+
+        sub_command = self.sub_commands[args.subcommand]
+        logging.debug("running sub command: '%s'", sub_command.__class__.__name__)
+
+        try:
+            sub_command.invoke(args, notes_paths_q.get)
+        except KeyboardInterrupt:
+            find_process.terminate()
+            print_default("\n")
+        finally:
+            find_process.join()
 
     def _init_arg_parser(self):
         self.arg_parser = ArgumentParser(
-            description="This is Yet Another Notes App.",
-            formatter_class=ArgumentDefaultsHelpFormatter
+            description="Yet Another Notes App - this one builds " +
+            "on what will persist (plaint text files and a file system).",
+            epilog="Now you know.",
+            formatter_class=ArgumentDefaultsHelpFormatter,
         )
 
     def _parse_args(self):
@@ -35,106 +74,107 @@ class Cli(object):
         if len(argv) == 1:
             argv.append("-h")
 
-        self.args = self.arg_parser.parse_args()
+        args = self.arg_parser.parse_args()
+        self.args = args
+
+        if args.verbose:
+            logging.getLogger().setLevel(logging.INFO)
 
     def _init_logging(self):
         logging.getLogger().name = "yana"
         self.arg_parser.add_argument('-d', '--debug', action='store_true',
-                            default=False, help='turn on debug messages')
+                                     default=False, help='turn on debug messages')
+        self.arg_parser.add_argument('-v', '--verbose', action='store_true',
+                                     default=False, help='turn on verbose messages')
         if '-d' in argv:
             logging.getLogger().setLevel(logging.DEBUG)
 
-    def _init_plugins(self):
+    def _init_sub_commands(self):
         """
-        Acquires and initializes all plugins (classes) in the module
-        ``plugins``.
+        Initializes all sub command classes from the corresponding module.
         """
-
-        # we scope this import into this function so that plugins can
-        # import this module
-        import plugins as plugins_module
-
         sub_parsers = self.arg_parser.add_subparsers(help="sub command",
-                                                    dest='subcommand')
+                                                     dest='subcommand')
 
-        plugin_classes = [t[1] for t in
-                            getmembers(plugins_module, isclass)
-                            if not t[0].startswith("Abstract")]
-        logging.debug("found plugins: %s" % str(
-            [s.__name__ for s in plugin_classes]
-        ))
+        assert self.finders, "finders must be initialized first"
+        finding_help = ', '.join((f.finds for f in self.finders))
 
-        self.plugins = {}
-        for cls in plugin_classes:
+        self.sub_commands = {}
+        for cls in Registry.sub_commands:
+            logging.debug("initializing sub command: %s", cls.__name__)
+
             sub_parser = sub_parsers.add_parser(cls.sub_command,
                                                 help=cls.sub_command_help)
-            self.plugins[cls.sub_command] = cls(sub_parser)
+            self.sub_commands[cls.sub_command] = cls(sub_parser)
 
             # add the path argument per default after all other arguments
-            sub_parser.add_argument('path', type=str, nargs="*", default=".",
-                                    help='directory or file to operate on')
+            sub_parser.add_argument('note', type=str, nargs="*", default=".",
+                                    help="target note (strategies: %s)." %
+                                    finding_help)
 
-    @classmethod
-    def find_notes(cls, paths, notes_paths_q):
+    def _init_finders(self):
         """
-        Finds all notes under ``path`` and puts them into the
-        ``notes_paths_q``.
+        Initializes all finder classes from the corresponding module.
         """
-        # TODO: spawn new process if crossing fs boundaries?
-        put = notes_paths_q.put
+        self.finders = []
+        for cls in Registry.finders:
+            logging.debug("initializing finder: %s", cls.__name__)
+            self.finders.append(cls(self.arg_parser))
 
-        dir_paths = []
-        for path in paths:
-            if isfile(path):
-                put(path)
-            elif isdir(path):
-              dir_paths.append(path)
-            else:
-              logging.error("Cannot find '%s'" % path)
-              put(QUEUE_END_SYMBOL)
-              exit(1)
+    def load_cached_paths(self):
+        """
+        Loads cached paths.
+        """
+        file_name = self.LIST_CACHE_FILE
+        paths = []
+        if isfile(file_name):
+            with open(file_name, "r") as cache_file:
+                try:
+                    paths = load(cache_file) or []
+                except ValueError:
+                    remove(file_name)
+                else:
+                    paths = [p for p in paths if isfile(p)]
+        self.old_cache = paths
+        self.new_cache = []
 
-        # TODO: make this configurable:
-        match = re.compile('.*\.note$').match
+    def save_cached_paths(self, *args):
+        """
+        Saves cached paths.
+
+        This method is required to function as a ``os.signal`` handler.
+        """
+        with open(self.LIST_CACHE_FILE, "w") as cache_file:
+            dump(self.new_cache, cache_file)
+        self.new_cache = None
+
+    def _find_notes(self, target_notes, notes_paths_q_put):
+        """
+        Finds all notes using all available lookups and puts them into
+        the ``notes_paths_q``.
+        """
+
+        def deduping_and_caching_q_put(path):
+            if path not in self.new_cache:
+                self.new_cache.append(path)
+                notes_paths_q_put(path)
+
+        # make cache to be saved when (probably) interrupt by user occurs
+        signal(SIGTERM, self.save_cached_paths)
+
+        self.load_cached_paths()
 
         try:
-            # cPython >= 3.5
-            from os import scandir
-            exclude = ('.', '..')
-            for dir_path in dir_paths:
-                for dir_entry in scandir(dir_path):
-                    entry_name = dir_entry.name
-                    if not dir_entry.is_file():
-                        continue
-                    if entry_name in exclude:
-                        continue
-                    if not match(entry_name):
-                        continue
-                    put(entry_path)
-        except ImportError:
-            # cPython < 3.5
-            from os import walk
-            from os.path import join as path_join
-            for dir_path in dir_paths:
-                for root, _, files in walk(dir_path):
-                    for file_path in files:
-                        if match(file_path):
-                            put(path_join(root, file_path))
-        finally:
-            put(QUEUE_END_SYMBOL)
-
-    def _run(self):
-        """
-        TODO docsting
-        """
-        args = self.args
-        notes_paths_q = Queue(False)
-        find_process = Process(target=self.find_notes,
-                                args=(args.path, notes_paths_q))
-        find_process.start()
-
-        plugin = self.plugins[args.subcommand]
-        logging.debug("running plugin: '%s'" % plugin.__class__.__name__)
-        plugin.run(args, notes_paths_q)
-
-        find_process.join()
+            for finder in self.finders:
+                logging.debug("running finder: %s", finder.__class__.__name__)
+                finder.find(self.args, target_notes, self.old_cache,
+                            deduping_and_caching_q_put)
+        except KeyboardInterrupt:
+            pass
+        else:
+            if not self.new_cache:
+                logging.error(
+                    "Could not find any note. Maybe try 'list' again."
+                )
+            self.save_cached_paths()
+        notes_paths_q_put(QUEUE_END_SYMBOL)
