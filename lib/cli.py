@@ -62,7 +62,7 @@ class Cli(object):
 
     def _init_arg_parser(self):
         self.arg_parser = ArgumentParser(
-            description="Yet Another Notes App - but this one builds " +
+            description="Yet Another Notes App - this one builds " +
             "on what will persist (plaint text files and a file system).",
             epilog="Now you know.",
             formatter_class=ArgumentDefaultsHelpFormatter,

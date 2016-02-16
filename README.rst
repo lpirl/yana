@@ -1,67 +1,58 @@
+YANA
+====
 
-yana --help
-===========
+**Y**\ et **A**\ nother **N**\ otes **A**\ pp wants ease the management
+of knowledge using
+only a few mental concepts,
+tools you know (e.g. your terminal and editor of choice)
+and building on technology that will persist (i.e. human-readable files in
+the file system).
 
-usage: yana.py [-h] [-d] [-v] {edit,list,show} ...
+However, it is rather a **personal prototype** than a product with batteries included.
 
-Even though this builds on what will persist (plaint text files and a file
-system) it is still only Yet Another Notes App.
+Features
+========
 
-positional arguments:
-  {edit,list,show}  sub command
-    edit            edit notes
-    list            lists notes
-    show            show notes
+See table of contents of the `document describing the usage <USAGE.rst>`_.
 
-optional arguments:
-  -h, --help        show this help message and exit
-  -d, --debug       turn on debug messages (default: False)
-  -v, --verbose     turn on verbose messages (default: False)
+To-Do's
+=======
 
-Now you know.
+* tags (near future, mentally designed half way through)
 
+  * can they be tagged themselves?
 
-yana edit --help
-================
+* connections
 
-usage: yana.py edit [-h] [-s] [-t] [-w] [note [note ...]]
+  * directed
+  * labeled
 
-positional arguments:
-  note            target note (strategies: recursively in the file system,
-                  listed during last run by their index, listed during last
-                  run by matching paths).
+  * but how to represent them?
 
-optional arguments:
-  -h, --help      show this help message and exit
-  -s, --separate  run editor for every note separately
-  -t, --terminal  use a terminal editor
-  -w, --wait      wait for the editor to finish
+    * using links in markup language?
+    * using symlinks?
+    * using IDs?
+    * …?
 
+  * can they be tagged?
 
-yana list --help
-================
+* mappable to mind maps and vice versa
 
-usage: yana.py list [-h] [note [note ...]]
+  * again: how?
 
-positional arguments:
-  note        target note (strategies: recursively in the file system, listed
-              during last run by their index, listed during last run by
-              matching paths).
+Useless Trivia [1]_
+===================
 
-optional arguments:
-  -h, --help  show this help message and exit
+*YANA* emerged because of the dissatisfaction of the available personal
+knowledge management tools.
+For example,
+bookmarking and re-reading Web sites is too verbose and
+inefficient,
+placing text files everywhere is too unstructured,
+hosted solutions introduce dependencies and so on.
 
+It is still an experiment and it remains unclear if the aspired concepts
+are representable using the employed low-tech foundations…
 
-yana show --help
-================
-
-usage: yana.py show [-h] [note [note ...]]
-
-positional arguments:
-  note        target note (strategies: recursively in the file system, listed
-              during last run by their index, listed during last run by
-              matching paths).
-
-optional arguments:
-  -h, --help  show this help message and exit
-
+.. [1] Thanks to the great project
+   `sshuttle <https://github.com/apenwarr/sshuttle>`_ for this great headline.
