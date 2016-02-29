@@ -50,7 +50,7 @@ class LastListingIndexFinder(BaseLastListingFinder):
     """
     finds = "last listed by index"
 
-    def find(self, args, queries, notes_paths_q_put):
+    def find(self, args, queries, found_path_callback):
         """
         Returns all paths that were listed last time and that are
         specified as index in ``queries``.
@@ -62,7 +62,7 @@ class LastListingIndexFinder(BaseLastListingFinder):
                 if -1 < index and index < len(self.last_listed_paths):
                     path = self.last_listed_paths[index]
                     logging.info("found by index in cache: %s", path)
-                    notes_paths_q_put(path)
+                    found_path_callback(path)
 
 @Registry.register_finder
 class LastListingRunMatchFinder(BaseLastListingFinder):
@@ -73,7 +73,7 @@ class LastListingRunMatchFinder(BaseLastListingFinder):
 
     finds = "last listed by pattern-matching paths"
 
-    def find(self, args, queries, notes_paths_q_put):
+    def find(self, args, queries, found_path_callback):
         """
         Returns all paths that were listed last time and that match
         patterns specified in ``queries``.
@@ -82,7 +82,7 @@ class LastListingRunMatchFinder(BaseLastListingFinder):
         for query in queries:
             for matched_path in fnmatch_filter(self.last_listed_paths, query):
                 logging.info("found by match in cache: %s", matched_path)
-                notes_paths_q_put(matched_path)
+                found_path_callback(matched_path)
 
 @Registry.register_sub_command
 class ListSubCommand(AbstractBaseSubCommand):
@@ -114,9 +114,9 @@ class ListSubCommand(AbstractBaseSubCommand):
         self.invoked = True
         super(ListSubCommand, self).invoke(*args, **kwargs)
 
-    def invoke_on_path(self, args, note_path):
-        self.listed_paths.append(note_path)
+    def invoke_on_note(self, args, note):
+        self.listed_paths.append(note.abspath)
         print_colored("%u " % len(self.listed_paths), True)
-        pathname, filename = path_split(note_path)
+        pathname, filename = path_split(note.path)
         print_default("%s%s" % (pathname, pathsep))
         print_highlighted("%s%s" % (filename, linesep))

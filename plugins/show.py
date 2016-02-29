@@ -11,7 +11,7 @@ class ShowSubCommand(AbstractBaseSubCommand):
     sub_command = "show"
     sub_command_help = "show notes"
 
-    def invoke_on_path(self, args, notes_path):
-        print_colored("%s%s" % (notes_path, linesep), interactive_only=True)
-        with open(notes_path, "r") as note_file:
+    def invoke_on_note(self, args, note):
+        print_colored("%s%s" % (note.path, linesep), interactive_only=True)
+        with open(note.path, "r") as note_file:
             copyfileobj(note_file, stdout)

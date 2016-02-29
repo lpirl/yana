@@ -20,10 +20,10 @@ class FileSystemFinder(AbstractBaseFinder):
                                 help='regular expression used to identify ' +
                                 'notes paths')
 
-    def _find_scandir(self, args, dir_paths, match, notes_paths_q_put):
+    def _find_scandir(self, args, dir_paths, match, found_path_callback):
         """
         Search for matching files using the new and fast ``os.scandir``.
-        Matching files will be submitted via ``notes_paths_q_put``.
+        Matching files will be submitted via ``found_path_callback``.
         """
         from os import scandir
         logging.debug("using scandir")
@@ -38,12 +38,12 @@ class FileSystemFinder(AbstractBaseFinder):
                 if not match(entry_name):
                     continue
                 logging.info("found in file system: %s", dir_entry.path)
-                notes_paths_q_put(dir_entry.path)
+                found_path_callback(dir_entry.path)
 
-    def _find_walk(self, args, dir_paths, match, notes_paths_q_put):
+    def _find_walk(self, args, dir_paths, match, found_path_callback):
         """
         Search for matching files w/o new (and fast ``os.scandir``).
-        Matching files will be submitted via ``notes_paths_q_put``.
+        Matching files will be submitted via ``found_path_callback``.
         """
         logging.debug("using walk")
         from os import walk
@@ -54,10 +54,10 @@ class FileSystemFinder(AbstractBaseFinder):
                     if match(file_path):
                         full_path = path_join(root, file_path)
                         logging.info("found in file system: %s", full_path)
-                        notes_paths_q_put(full_path)
+                        found_path_callback(full_path)
 
 
-    def find(self, args, queries, notes_paths_q_put):
+    def find(self, args, queries, found_path_callback):
         """
         Search for matching files in the file system.
         """
@@ -70,11 +70,11 @@ class FileSystemFinder(AbstractBaseFinder):
             if isdir(query):
                 dir_paths.append(query)
             elif (isfile(query) or args.new) and match(query):
-                notes_paths_q_put(query)
+                found_path_callback(query)
 
         try:
             # cPython >= 3.5
-            self._find_scandir(args, dir_paths, match, notes_paths_q_put)
+            self._find_scandir(args, dir_paths, match, found_path_callback)
         except ImportError:
             # cPython < 3.5
-            self._find_walk(args, dir_paths, match, notes_paths_q_put)
+            self._find_walk(args, dir_paths, match, found_path_callback)

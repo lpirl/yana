@@ -3,6 +3,8 @@ from plugins import Registry, AbstractBaseSubCommand
 from subprocess import Popen
 from shlex import split as split_command
 
+from lib import QUEUE_END_SYMBOL
+
 @Registry.register_sub_command
 class ShowSubCommand(AbstractBaseSubCommand):
 
@@ -23,8 +25,9 @@ class ShowSubCommand(AbstractBaseSubCommand):
         arg_parser.add_argument('--terminal-editor', default="nano",
                                 help='default editor on terminal to use')
 
-    def invoke(self, args, notes_paths_q_get):
-        notes_paths = list(iter(notes_paths_q_get, None))
+    def invoke(self, args, notes_q_get):
+        notes = list(iter(notes_q_get, QUEUE_END_SYMBOL))
+        notes_paths = [n.path for n in notes]
         if args.separate:
             for note_path in notes_paths:
                 self.edit_notes(args, (note_path,))

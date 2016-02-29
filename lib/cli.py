@@ -13,6 +13,7 @@ from signal import signal, SIGTERM
 from lib import QUEUE_END_SYMBOL
 from plugins import Registry
 from lib.printing import print_default
+from lib.note import Note
 
 class Cli(object):
 
@@ -45,17 +46,17 @@ class Cli(object):
         self._parse_args()
         args = self.args
 
-        notes_paths_q = Queue(False)
+        notes_q = Queue(False)
 
         find_process = Process(target=self._find_notes,
-                               args=(args.query, notes_paths_q.put))
+                               args=(args.query, notes_q.put))
         find_process.start()
 
         sub_command = self.sub_commands[args.subcommand]
         logging.debug("running sub command: '%s'", sub_command.__class__.__name__)
 
         try:
-            sub_command.invoke(args, notes_paths_q.get)
+            sub_command.invoke(args, notes_q.get)
         except KeyboardInterrupt:
             find_process.terminate()
             print_default("\n")
@@ -145,30 +146,29 @@ class Cli(object):
             logging.debug("tearing down finder: %s", self.__class__.__name__)
             finder.tear_down()
 
-    def _find_notes(self, queries, notes_paths_q_put):
+    def _find_notes(self, queries, notes_q_put):
         """
-        Finds all notes using all available lookups and puts them into
-        the ``notes_paths_q``.
+        Collects paths to notes from finders and submits them as
+        ``Note``s via ``notes_q_put`` to the corresponding sub command.
         """
 
-        def deduping_q_put(path):
+        def found_path_callback(path):
+            """
+            Initializes ``Note` `from found ``path`` and puts it
+            into the notes queue.
 
-            # not sure we should make this "cache" a bit more transparent
-            # to plugins and maybe also provide its contents to them on
-            # tear down
-            if not hasattr(deduping_q_put, "_path_set"):
-                deduping_q_put._path_set = set()
-
-            if path not in deduping_q_put._path_set:
-                deduping_q_put._path_set.add(path)
-                notes_paths_q_put(path)
+            This function can easily feature deduplication (and actually
+            did) but I am not quite sure if this is actually desired.
+            """
+            notes_q_put(Note(path))
 
         signal(SIGTERM, self.tear_down)
 
         try:
             for finder in self.finders:
                 logging.debug("running finder: %s", finder.__class__.__name__)
-                finder.find(self.args, queries, deduping_q_put)
+                finder.find(self.args, queries, found_path_callback)
         except KeyboardInterrupt:
             pass
-        notes_paths_q_put(QUEUE_END_SYMBOL)
+
+        notes_q_put(QUEUE_END_SYMBOL)
