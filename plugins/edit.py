@@ -9,7 +9,7 @@ class ShowSubCommand(AbstractBaseSubCommand):
     sub_command = "edit"
     sub_command_help = "edit notes"
 
-    def post_init(self, arg_parser):
+    def set_up(self, arg_parser):
         arg_parser.add_argument('-s', '--separate', action='store_true',
                                 help='run editor for every note separately',
                                 default=False)

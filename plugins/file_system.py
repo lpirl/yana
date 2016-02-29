@@ -12,7 +12,7 @@ class FileSystemFinder(AbstractBaseFinder):
 
     finds = "recursively in the file system"
 
-    def post_init(self, arg_parser):
+    def set_up(self, arg_parser):
         arg_parser.add_argument('-n', '--new', action='store_true',
                                 default=False, help='ignore non-existing ' +
                                 'notes / allow new notes to be created')
@@ -57,7 +57,7 @@ class FileSystemFinder(AbstractBaseFinder):
                         notes_paths_q_put(full_path)
 
 
-    def find(self, args, target_notes, _, notes_paths_q_put):
+    def find(self, args, target_notes, notes_paths_q_put):
         """
         Search for matching files in the file system.
         """

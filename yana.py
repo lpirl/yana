@@ -11,5 +11,9 @@ def main():
     cli = Cli()
     cli.handle_args()
 
+    # TODO: what is the proper way to wire something to program exit
+    #   (willing and unwillingly)
+    cli.tear_down()
+
 if __name__ == '__main__':
     main()

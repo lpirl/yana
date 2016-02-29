@@ -8,19 +8,13 @@ from sys import argv
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import logging
 from multiprocessing import Process, Queue
-from os import remove
-from os.path import isfile, join as path_join
-from json import dump, load
 from signal import signal, SIGTERM
 
-from lib import QUEUE_END_SYMBOL, CACHE_DIR
+from lib import QUEUE_END_SYMBOL
 from plugins import Registry
 from lib.printing import print_default
 
 class Cli(object):
-
-    LIST_CACHE_FILE = path_join(CACHE_DIR, "list_cache.json")
-
 
     def __init__(self):
         """
@@ -29,11 +23,19 @@ class Cli(object):
 
         self._init_arg_parser()
         self._init_logging()
-        self._init_finders()
-        self._init_sub_commands()
+        self._init_and_set_up_finders()
+        self._init_and_set_up_sub_commands()
         self.args = None
         self.old_cache = None
         self.new_cache = None
+
+    def tear_down(self, *_):
+        """
+        This method is required to function as a ``os.signal`` handler.
+        """
+        logging.debug("deleting %s" % self)
+        self._tear_down_finders()
+        self._tear_down_sub_commands()
 
     def handle_args(self):
         """
@@ -89,9 +91,10 @@ class Cli(object):
         if '-d' in argv:
             logging.getLogger().setLevel(logging.DEBUG)
 
-    def _init_sub_commands(self):
+    def _init_and_set_up_sub_commands(self):
         """
-        Initializes all sub command classes from the corresponding module.
+        Initializes and sets up all sub command classes from the
+        corresponding module.
         """
         sub_parsers = self.arg_parser.add_subparsers(help="sub command",
                                                      dest='subcommand')
@@ -105,48 +108,42 @@ class Cli(object):
 
             sub_parser = sub_parsers.add_parser(cls.sub_command,
                                                 help=cls.sub_command_help)
-            self.sub_commands[cls.sub_command] = cls(sub_parser)
+            sub_command = cls()
+            sub_command.set_up(sub_parser)
+            self.sub_commands[cls.sub_command] = sub_command
 
             # add the path argument per default after all other arguments
             sub_parser.add_argument('note', type=str, nargs="*", default=".",
                                     help="target note (strategies: %s)." %
                                     finding_help)
 
-    def _init_finders(self):
+    def _tear_down_sub_commands(self, *args):
         """
-        Initializes all finder classes from the corresponding module.
+        Tears down all finder classes.
+        """
+        for sub_command in self.sub_commands.values():
+            logging.debug("tearing down sub command: %s", self.__class__.__name__)
+            sub_command.tear_down()
+
+    def _init_and_set_up_finders(self):
+        """
+        Initializes and sets up all finder classes from the
+        corresponding module.
         """
         self.finders = []
         for cls in Registry.finders:
-            logging.debug("initializing finder: %s", cls.__name__)
-            self.finders.append(cls(self.arg_parser))
+            logging.debug("initializing and setting up finder: %s", cls.__name__)
+            finder = cls()
+            finder.set_up(self.arg_parser)
+            self.finders.append(finder)
 
-    def load_cached_paths(self):
+    def _tear_down_finders(self, *args):
         """
-        Loads cached paths.
+        Tears down all finder classes.
         """
-        file_name = self.LIST_CACHE_FILE
-        paths = []
-        if isfile(file_name):
-            with open(file_name, "r") as cache_file:
-                try:
-                    paths = load(cache_file) or []
-                except ValueError:
-                    remove(file_name)
-                else:
-                    paths = [p for p in paths if isfile(p)]
-        self.old_cache = paths
-        self.new_cache = []
-
-    def save_cached_paths(self, *args):
-        """
-        Saves cached paths.
-
-        This method is required to function as a ``os.signal`` handler.
-        """
-        with open(self.LIST_CACHE_FILE, "w") as cache_file:
-            dump(self.new_cache, cache_file)
-        self.new_cache = None
+        for finder in self.finders:
+            logging.debug("tearing down finder: %s", self.__class__.__name__)
+            finder.tear_down()
 
     def _find_notes(self, target_notes, notes_paths_q_put):
         """
@@ -154,27 +151,24 @@ class Cli(object):
         the ``notes_paths_q``.
         """
 
-        def deduping_and_caching_q_put(path):
-            if path not in self.new_cache:
-                self.new_cache.append(path)
+        def deduping_q_put(path):
+
+            # not sure we should make this "cache" a bit more transparent
+            # to plugins and maybe also provide its contents to them on
+            # tear down
+            if not hasattr(deduping_q_put, "_path_set"):
+                deduping_q_put._path_set = set()
+
+            if path not in deduping_q_put._path_set:
+                deduping_q_put._path_set.add(path)
                 notes_paths_q_put(path)
 
-        # make cache to be saved when (probably) interrupt by user occurs
-        signal(SIGTERM, self.save_cached_paths)
-
-        self.load_cached_paths()
+        signal(SIGTERM, self.tear_down)
 
         try:
             for finder in self.finders:
                 logging.debug("running finder: %s", finder.__class__.__name__)
-                finder.find(self.args, target_notes, self.old_cache,
-                            deduping_and_caching_q_put)
+                finder.find(self.args, target_notes, deduping_q_put)
         except KeyboardInterrupt:
             pass
-        else:
-            if not self.new_cache:
-                logging.error(
-                    "Could not find any note. Maybe try 'list' again."
-                )
-            self.save_cached_paths()
         notes_paths_q_put(QUEUE_END_SYMBOL)
