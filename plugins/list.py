@@ -50,15 +50,15 @@ class LastListingIndexFinder(BaseLastListingFinder):
     """
     finds = "last listed by index"
 
-    def find(self, args, target_notes, notes_paths_q_put):
+    def find(self, args, queries, notes_paths_q_put):
         """
         Returns all paths that were listed last time and that are
-        specified as index in ``target_notes``.
+        specified as index in ``queries``.
         """
 
-        for target_note in target_notes:
-            if target_note.isdigit():
-                index = int(target_note) - 1
+        for query in queries:
+            if query.isdigit():
+                index = int(query) - 1
                 if -1 < index and index < len(self.last_listed_paths):
                     path = self.last_listed_paths[index]
                     logging.info("found by index in cache: %s", path)
@@ -73,14 +73,14 @@ class LastListingRunMatchFinder(BaseLastListingFinder):
 
     finds = "last listed by pattern-matching paths"
 
-    def find(self, args, target_notes, notes_paths_q_put):
+    def find(self, args, queries, notes_paths_q_put):
         """
         Returns all paths that were listed last time and that match
-        patterns specified in ``target_notes``.
+        patterns specified in ``queries``.
         """
 
-        for target_note in target_notes:
-            for matched_path in fnmatch_filter(self.last_listed_paths, target_note):
+        for query in queries:
+            for matched_path in fnmatch_filter(self.last_listed_paths, query):
                 logging.info("found by match in cache: %s", matched_path)
                 notes_paths_q_put(matched_path)
 

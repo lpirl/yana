@@ -20,7 +20,7 @@ class FileSystemFinder(AbstractBaseFinder):
                                 help='regular expression used to identify ' +
                                 'notes paths')
 
-    def _find_scandir(self, args, target_notes, match, notes_paths_q_put):
+    def _find_scandir(self, args, dir_paths, match, notes_paths_q_put):
         """
         Search for matching files using the new and fast ``os.scandir``.
         Matching files will be submitted via ``notes_paths_q_put``.
@@ -28,7 +28,7 @@ class FileSystemFinder(AbstractBaseFinder):
         from os import scandir
         logging.debug("using scandir")
         exclude = ('.', '..')
-        for dir_path in target_notes:
+        for dir_path in dir_paths:
             for dir_entry in scandir(dir_path):
                 entry_name = dir_entry.name
                 if not dir_entry.is_file():
@@ -40,7 +40,7 @@ class FileSystemFinder(AbstractBaseFinder):
                 logging.info("found in file system: %s", dir_entry.path)
                 notes_paths_q_put(dir_entry.path)
 
-    def _find_walk(self, args, target_notes, match, notes_paths_q_put):
+    def _find_walk(self, args, dir_paths, match, notes_paths_q_put):
         """
         Search for matching files w/o new (and fast ``os.scandir``).
         Matching files will be submitted via ``notes_paths_q_put``.
@@ -48,7 +48,7 @@ class FileSystemFinder(AbstractBaseFinder):
         logging.debug("using walk")
         from os import walk
         from os.path import join as path_join
-        for dir_path in target_notes:
+        for dir_path in dir_paths:
             for root, _, files in walk(dir_path):
                 for file_path in files:
                     if match(file_path):
@@ -57,7 +57,7 @@ class FileSystemFinder(AbstractBaseFinder):
                         notes_paths_q_put(full_path)
 
 
-    def find(self, args, target_notes, notes_paths_q_put):
+    def find(self, args, queries, notes_paths_q_put):
         """
         Search for matching files in the file system.
         """
@@ -66,15 +66,15 @@ class FileSystemFinder(AbstractBaseFinder):
         match = re.compile(args.match).match
 
         dir_paths = []
-        for path in target_notes:
-            if isdir(path):
-                dir_paths.append(path)
-            elif (isfile(path) or args.new) and match(path):
-                notes_paths_q_put(path)
+        for query in queries:
+            if isdir(query):
+                dir_paths.append(query)
+            elif (isfile(query) or args.new) and match(query):
+                notes_paths_q_put(query)
 
         try:
             # cPython >= 3.5
-            self._find_scandir(args, target_notes, match, notes_paths_q_put)
+            self._find_scandir(args, dir_paths, match, notes_paths_q_put)
         except ImportError:
             # cPython < 3.5
-            self._find_walk(args, target_notes, match, notes_paths_q_put)
+            self._find_walk(args, dir_paths, match, notes_paths_q_put)

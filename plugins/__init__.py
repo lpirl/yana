@@ -97,8 +97,8 @@ class AbstractBaseSubCommand(AbstractBasePlugin):
         Called if the user-provided sub command matches the this class'
         sub command.
         """
-        for target_note in iter(notes_paths_q_get, None):
-            self.invoke_on_path(args, target_note)
+        for path in iter(notes_paths_q_get, None):
+            self.invoke_on_path(args, path)
 
     def invoke_on_path(self, args, note_path):
         """
@@ -127,13 +127,13 @@ class AbstractBaseFinder(AbstractBasePlugin):
         super(AbstractBaseFinder, self).__init__(*args, **kwargs)
 
     @abc.abstractmethod
-    def find(self, args, target_notes, notes_paths_q_put):
+    def find(self, args, queries, notes_paths_q_put):
         """
         This is where the implementation goes.
         Finders are required to submit found paths to notes via
         ``notes_paths_q_put``.
         To do so, they most likely want to use the information provided
-        through ``target_notes``.
+        through ``queries``.
         """
         pass
 

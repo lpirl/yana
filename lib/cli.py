@@ -48,7 +48,7 @@ class Cli(object):
         notes_paths_q = Queue(False)
 
         find_process = Process(target=self._find_notes,
-                               args=(args.note, notes_paths_q.put))
+                               args=(args.query, notes_paths_q.put))
         find_process.start()
 
         sub_command = self.sub_commands[args.subcommand]
@@ -113,8 +113,8 @@ class Cli(object):
             self.sub_commands[cls.sub_command] = sub_command
 
             # add the path argument per default after all other arguments
-            sub_parser.add_argument('note', type=str, nargs="*", default=".",
-                                    help="target note (strategies: %s)." %
+            sub_parser.add_argument('query', type=str, nargs="*", default=".",
+                                    help="a query for notes (searches: %s)." %
                                     finding_help)
 
     def _tear_down_sub_commands(self, *args):
@@ -145,7 +145,7 @@ class Cli(object):
             logging.debug("tearing down finder: %s", self.__class__.__name__)
             finder.tear_down()
 
-    def _find_notes(self, target_notes, notes_paths_q_put):
+    def _find_notes(self, queries, notes_paths_q_put):
         """
         Finds all notes using all available lookups and puts them into
         the ``notes_paths_q``.
@@ -168,7 +168,7 @@ class Cli(object):
         try:
             for finder in self.finders:
                 logging.debug("running finder: %s", finder.__class__.__name__)
-                finder.find(self.args, target_notes, deduping_q_put)
+                finder.find(self.args, queries, deduping_q_put)
         except KeyboardInterrupt:
             pass
         notes_paths_q_put(QUEUE_END_SYMBOL)
