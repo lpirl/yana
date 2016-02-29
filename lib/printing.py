@@ -59,6 +59,12 @@ def print_colored(text, interactive_only=False):
     """
     styled_print("green", text, interactive_only)
 
+def print_colored_2(text, interactive_only=False):
+    """
+    Shortcut to print colored.
+    """
+    styled_print("yellow", text, interactive_only)
+
 def print_highlighted(text, interactive_only=False):
     """
     Shortcut to print highlighted (w/o color).

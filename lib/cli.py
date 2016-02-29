@@ -24,6 +24,7 @@ class Cli(object):
 
         self._init_arg_parser()
         self._init_logging()
+        self._init_Note()
         self._init_and_set_up_finders()
         self._init_and_set_up_sub_commands()
         self.args = None
@@ -45,6 +46,8 @@ class Cli(object):
         """
         self._parse_args()
         args = self.args
+
+        Note.set_args(args)
 
         notes_q = Queue(False)
 
@@ -91,6 +94,9 @@ class Cli(object):
                                      default=False, help='turn on verbose messages')
         if '-d' in argv:
             logging.getLogger().setLevel(logging.DEBUG)
+
+    def _init_Note(self):
+        Note.set_parser(self.arg_parser)
 
     def _init_and_set_up_sub_commands(self):
         """

@@ -25,8 +25,8 @@ class ShowSubCommand(AbstractBaseSubCommand):
         arg_parser.add_argument('--terminal-editor', default="nano",
                                 help='default editor on terminal to use')
 
-    def invoke(self, args, notes_q_get):
-        notes = list(iter(notes_q_get, QUEUE_END_SYMBOL))
+    def invoke(self, args, note_q_get):
+        notes = list(iter(note_q_get, QUEUE_END_SYMBOL))
         notes_paths = [n.path for n in notes]
         if args.separate:
             for note_path in notes_paths:

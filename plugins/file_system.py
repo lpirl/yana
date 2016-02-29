@@ -16,7 +16,7 @@ class FileSystemFinder(AbstractBaseFinder):
         arg_parser.add_argument('-n', '--new', action='store_true',
                                 default=False, help='ignore non-existing ' +
                                 'notes / allow new notes to be created')
-        arg_parser.add_argument('-m', '--match', default=r'.*\.note$',
+        arg_parser.add_argument('--note-regex', default=r'.*\.note$',
                                 help='regular expression used to identify ' +
                                 'notes paths')
 
@@ -63,7 +63,7 @@ class FileSystemFinder(AbstractBaseFinder):
         """
         # IDEA: spawn new process/thread if crossing fs boundaries?
 
-        match = re.compile(args.match).match
+        match = re.compile(args.note_regex).match
 
         dir_paths = []
         for query in queries:

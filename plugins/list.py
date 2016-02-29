@@ -11,7 +11,8 @@ from json import dump, load
 
 from lib import CACHE_DIR
 from plugins import Registry, AbstractBaseSubCommand, AbstractBaseFinder
-from lib.printing import print_colored, print_default, print_highlighted
+from lib.printing import (print_colored, print_colored_2, print_default,
+                          print_highlighted)
 
 LIST_CACHE_FILE = path_join(CACHE_DIR, "list_cache.json")
 
@@ -90,7 +91,10 @@ class ListSubCommand(AbstractBaseSubCommand):
     sub_command = "list"
     sub_command_help = "lists notes"
 
-    def set_up(self, _):
+    def set_up(self, arg_parser):
+        arg_parser.add_argument('-t', '--tags', action='store_true',
+                                help='list tags as well', default=False)
+
         self.listed_paths = []
         self.invoked = False
 
@@ -120,3 +124,8 @@ class ListSubCommand(AbstractBaseSubCommand):
         pathname, filename = path_split(note.path)
         print_default("%s%s" % (pathname, pathsep))
         print_highlighted("%s%s" % (filename, linesep))
+        if args.tags:
+            print_default("\n")
+            for tag in note.tags:
+                print_colored_2("\t#%s\n" % tag)
+            print_default("\n")

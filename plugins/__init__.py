@@ -26,6 +26,7 @@ import logging
 
 from lib import QUEUE_END_SYMBOL
 
+
 class Registry(object):
 
     sub_commands = set()
@@ -51,6 +52,7 @@ class Registry(object):
     def register_finder(cls, plugin_cls):
         return cls.register(cls.finders, plugin_cls)
 
+
 class AbstractBasePlugin(object):
     """
     Provides common functionality for plugins.
@@ -58,17 +60,18 @@ class AbstractBasePlugin(object):
 
     __metaclass__ = abc.ABCMeta
 
+    def set_up(self, arg_parser):
+        """
+        Called after initialization (plugins must not override __init__).
+        """
+        pass
+
     def tear_down(self):
         """
         Called on program exit.
         """
         pass
 
-    def set_up(self, arg_parser):
-        """
-        Called after initialization (plugins must not override __init__).
-        """
-        pass
 
 class AbstractBaseSubCommand(AbstractBasePlugin):
     """
@@ -92,12 +95,12 @@ class AbstractBaseSubCommand(AbstractBasePlugin):
 
         super(AbstractBaseSubCommand, self).__init__(*args, **kwargs)
 
-    def invoke(self, args, notes_q_get):
+    def invoke(self, args, note_q_get):
         """
         Called if the user-provided sub command matches the this class'
         sub command.
         """
-        for note in iter(notes_q_get, None):
+        for note in iter(note_q_get, QUEUE_END_SYMBOL):
             self.invoke_on_note(args, note)
 
     def invoke_on_note(self, args, note):
@@ -136,6 +139,7 @@ class AbstractBaseFinder(AbstractBasePlugin):
         through ``queries``.
         """
         pass
+
 
 # load sub modules so they can register at the corresponding registry
 for module_loader, module_name, _ in walk_packages(__path__):
