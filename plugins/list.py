@@ -125,7 +125,9 @@ class ListSubCommand(AbstractBaseSubCommand):
         print_default("%s%s" % (pathname, pathsep))
         print_highlighted("%s%s" % (filename, linesep))
         if args.tags:
-            print_default("\n")
-            for tag in note.tags:
-                print_colored_2("\t#%s\n" % tag)
-            print_default("\n")
+            tags = note.tags
+            if tags:
+                print_default("\n")
+                for tag in tags:
+                    print_colored_2("\t#%s\n" % tag)
+                print_default("\n")
