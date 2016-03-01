@@ -18,11 +18,12 @@ See table of contents of the `document describing the usage <USAGE.rst>`_.
 To-Do's
 =======
 
-* tags (near future, mentally designed half way through)
+In loose order:
 
-  * can they be tagged themselves?
+conceptual
+----------
 
-* connections
+* connections between notes
 
   * directed
   * labeled
@@ -36,9 +37,50 @@ To-Do's
 
   * can they be tagged?
 
+
 * mappable to mind maps and vice versa
 
   * again: how?
+
+technical
+---------
+
+* use `ConfigArgParse <https://pypi.python.org/pypi/ConfigArgParse>`_
+
+* tests
+
+  * probably behavioral testing especially for CLI applications?
+
+* provide a ``setup.py``
+
+* limit by tags
+
+  * e.g. ``yana -t [<pattern> [<pattern …]]``
+
+* replace tags
+
+  * e.g. ``yana tag-replace [old] [new] …``
+
+* collect all notes into a specified directory
+
+  * e.g. to assemble all notes for archiving
+  * flat xor maintaining the directory hierarchy
+
+* compile notes
+
+  * using markup compiler of preference
+  * might be useful in connection with notes collection (see above)
+
+* caching of notes found?
+
+  * e.g. for really slow network connections
+  * but: OS caches usually quite good
+
+
+* more clever searching of notes with respect to lately found ones
+
+  * e.g. travel file system up from known notes instead top-down every time
+  * but: complexity-benefit ratio probably very bad
 
 Useless Trivia [1]_
 ===================
