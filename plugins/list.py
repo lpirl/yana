@@ -120,10 +120,12 @@ class ListSubCommand(AbstractBaseSubCommand):
 
     def invoke_on_note(self, args, note):
         self.listed_paths.append(note.abspath)
+
         print_colored("%u " % len(self.listed_paths), True)
         pathname, filename = path_split(note.path)
         print_default("%s%s" % (pathname, pathsep))
         print_highlighted("%s%s" % (filename, linesep))
+
         if args.tags:
             tags = note.tags
             if tags:

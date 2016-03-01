@@ -27,7 +27,6 @@ class Note(object):
 
     def __init__(self, path):
 
-        assert isfile(path)
         assert self._tag_pattern is not None
 
         self.path = path
@@ -46,6 +45,8 @@ class Note(object):
 
     @property
     def tags(self):
+        if not isfile(self.abspath):
+            return []
         with open(self.abspath) as note_file:
             note_content = note_file.read()
             return self.__class__._tag_pattern.findall(note_content)
