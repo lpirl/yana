@@ -8,7 +8,6 @@ from sys import argv
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import logging
 from multiprocessing import Process, Queue
-from signal import signal, SIGTERM
 
 from lib import QUEUE_END_SYMBOL
 from plugins import Registry
@@ -30,14 +29,6 @@ class Cli(object):
         self.args = None
         self.old_cache = None
         self.new_cache = None
-
-    def tear_down(self, *_):
-        """
-        This method is required to function as a ``os.signal`` handler.
-        """
-        logging.debug("deleting %s" % self)
-        self._tear_down_finders()
-        self._tear_down_sub_commands()
 
     def handle_args(self):
         """
@@ -124,14 +115,6 @@ class Cli(object):
                                     help="a query for notes (searches: %s)." %
                                     finding_help)
 
-    def _tear_down_sub_commands(self, *args):
-        """
-        Tears down all finder classes.
-        """
-        for sub_command in self.sub_commands.values():
-            logging.debug("tearing down sub command: %s", self.__class__.__name__)
-            sub_command.tear_down()
-
     def _init_and_set_up_finders(self):
         """
         Initializes and sets up all finder classes from the
@@ -143,14 +126,6 @@ class Cli(object):
             finder = cls()
             finder.set_up(self.arg_parser)
             self.finders.append(finder)
-
-    def _tear_down_finders(self, *args):
-        """
-        Tears down all finder classes.
-        """
-        for finder in self.finders:
-            logging.debug("tearing down finder: %s", self.__class__.__name__)
-            finder.tear_down()
 
     def _find_notes(self, queries, notes_q_put):
         """
@@ -167,8 +142,6 @@ class Cli(object):
             did) but I am not quite sure if this is actually desired.
             """
             notes_q_put(Note(path))
-
-        signal(SIGTERM, self.tear_down)
 
         try:
             for finder in self.finders:

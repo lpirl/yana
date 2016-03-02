@@ -98,9 +98,6 @@ class ListSubCommand(AbstractBaseSubCommand):
         self.listed_paths = []
         self.invoked = False
 
-    def tear_down(self):
-        self.save_listed_paths()
-
     def save_listed_paths(self):
         """
         Saves listed paths.
@@ -116,7 +113,13 @@ class ListSubCommand(AbstractBaseSubCommand):
         That way, ``save_listed_paths`` can decide if it should operate.
         """
         self.invoked = True
-        super(ListSubCommand, self).invoke(*args, **kwargs)
+
+        try:
+            super(ListSubCommand, self).invoke(*args, **kwargs)
+        except KeyboardInterrupt as exception:
+            raise exception
+        finally:
+            self.save_listed_paths()
 
     def invoke_on_note(self, args, note):
         self.listed_paths.append(note.abspath)

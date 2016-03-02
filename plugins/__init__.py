@@ -66,12 +66,6 @@ class AbstractBasePlugin(object):
         """
         pass
 
-    def tear_down(self):
-        """
-        Called on program exit.
-        """
-        pass
-
 
 class AbstractBaseSubCommand(AbstractBasePlugin):
     """
@@ -117,12 +111,6 @@ class AbstractBaseFinder(AbstractBasePlugin):
     All finders should from this base class.
     """
 
-    finds = None
-    """
-    A very short and descriptive text saying what this finder can find.
-    It must fit into "This finder finds notes <YXZ>"
-    """
-
     def __init__(self, *args, **kwargs):
 
         assert self.finds is not None
@@ -140,6 +128,14 @@ class AbstractBaseFinder(AbstractBasePlugin):
         """
         pass
 
+    @abc.abstractproperty
+    def finds(self):
+        """
+        A very short and descriptive text saying what this finder
+        can find.
+        It must fit into "This finder finds notes <YXZ>"
+        """
+        pass
 
 # load sub modules so they can register at the corresponding registry
 for module_loader, module_name, _ in walk_packages(__path__):
