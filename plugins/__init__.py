@@ -28,6 +28,12 @@ from lib import QUEUE_END_SYMBOL
 
 
 class Registry(object):
+    """
+    Plugins register at this class.
+
+    This class cannot be instantiated since we use class methods and
+    properties to act like a singleton.
+    """
 
     sub_commands = set()
     finders = set()
@@ -40,17 +46,23 @@ class Registry(object):
         raise RuntimeError(self.__init__.__doc__)
 
     @classmethod
-    def register(cls, registry, plugin_cls):
+    def _register(cls, registry, plugin_cls):
         registry.add(plugin_cls)
         return plugin_cls
 
     @classmethod
     def register_sub_command(cls, plugin_cls):
-        return cls.register(cls.sub_commands, plugin_cls)
+        """
+        Registers a sub command class.
+        """
+        return cls._register(cls.sub_commands, plugin_cls)
 
     @classmethod
     def register_finder(cls, plugin_cls):
-        return cls.register(cls.finders, plugin_cls)
+        """
+        Registers a finder class.
+        """
+        return cls._register(cls.finders, plugin_cls)
 
 
 class AbstractBasePlugin(object):
@@ -71,6 +83,8 @@ class AbstractBaseSubCommand(AbstractBasePlugin):
     """
     All sub commands should from this base class.
     """
+
+    __metaclass__ = abc.ABCMeta
 
     sub_command = None
     """
@@ -110,6 +124,8 @@ class AbstractBaseFinder(AbstractBasePlugin):
     """
     All finders should from this base class.
     """
+
+    __metaclass__ = abc.ABCMeta
 
     def __init__(self, *args, **kwargs):
 

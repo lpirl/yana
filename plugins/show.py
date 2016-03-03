@@ -1,3 +1,7 @@
+"""
+Implements plugins to show (think: cat) plugins.
+"""
+
 from shutil import copyfileobj
 from sys import stdout
 from os import linesep
@@ -7,6 +11,9 @@ from lib.printing import print_colored
 
 @Registry.register_sub_command
 class ShowSubCommand(AbstractBaseSubCommand):
+    """
+    A simple plugin that prints the contents of notes found to stdout.
+    """
 
     sub_command = "show"
     sub_command_help = "show notes"

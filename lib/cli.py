@@ -9,12 +9,17 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import logging
 from multiprocessing import Process, Queue
 
-from lib import QUEUE_END_SYMBOL
 from plugins import Registry
+from lib import QUEUE_END_SYMBOL
 from lib.printing import print_default
 from lib.note import Note
 
 class Cli(object):
+    """
+    Implements most top-level coordination and interaction as CLI.
+
+    After initialization, all you need is ``handle_args()``.
+    """
 
     def __init__(self):
         """
@@ -23,7 +28,7 @@ class Cli(object):
 
         self._init_arg_parser()
         self._init_logging()
-        self._init_Note()
+        self._init_note_class()
         self._init_and_set_up_finders()
         self._init_and_set_up_sub_commands()
         self.args = None
@@ -86,7 +91,7 @@ class Cli(object):
         if '-d' in argv:
             logging.getLogger().setLevel(logging.DEBUG)
 
-    def _init_Note(self):
+    def _init_note_class(self):
         Note.set_parser(self.arg_parser)
 
     def _init_and_set_up_sub_commands(self):

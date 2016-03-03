@@ -1,6 +1,6 @@
-from shutil import copyfileobj
-from sys import stdout
-from os import linesep
+"""
+Implements plugins to view tags of notes.
+"""
 
 from plugins import Registry, AbstractBaseSubCommand
 
@@ -9,6 +9,10 @@ from lib.printing import print_colored_2, print_default
 
 @Registry.register_sub_command
 class TagsSubCommand(AbstractBaseSubCommand):
+    """
+    A sub command that displays tags and optionally the notes where they
+    can be found in.
+    """
 
     sub_command = "tags"
     sub_command_help = "show used tags for notes"
@@ -28,7 +32,7 @@ class TagsSubCommand(AbstractBaseSubCommand):
         All other cases are handled within this method.
         """
 
-        # we cover the easiest "feault" approach with this guard clause:
+        # we cover the easiest "default" approach with this guard clause:
         if not args.notes and not args.sort:
             self._printed_tags = set()
             super(TagsSubCommand, self).invoke(args, note_q_get)
@@ -45,7 +49,7 @@ class TagsSubCommand(AbstractBaseSubCommand):
         # sort the tags if need be
         tags = tags_and_notes.keys()
         if args.sort:
-            tags.sort(key = lambda s: s.lower())
+            tags.sort(key=lambda s: s.lower())
 
         # output
         for tag in tags:

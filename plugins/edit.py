@@ -1,12 +1,20 @@
+"""
+Implements plugins to edit notes.
+"""
+
 import logging
-from plugins import Registry, AbstractBaseSubCommand
 from subprocess import Popen
 from shlex import split as split_command
 
 from lib import QUEUE_END_SYMBOL
+from plugins import Registry, AbstractBaseSubCommand
 
 @Registry.register_sub_command
-class ShowSubCommand(AbstractBaseSubCommand):
+class EditSubCommand(AbstractBaseSubCommand):
+    """
+    A plugin that calls the user-preferred external editor in order to
+    let the user edit the notes found.
+    """
 
     sub_command = "edit"
     sub_command_help = "edit notes"
@@ -34,7 +42,11 @@ class ShowSubCommand(AbstractBaseSubCommand):
         else:
             self.edit_notes(args, notes_paths)
 
-    def edit_notes(self, args, notes_paths):
+    @staticmethod
+    def edit_notes(args, notes_paths):
+        """
+        Actually calls user-preferred editor with specified note(s).
+        """
         if args.terminal:
             cmd = split_command(args.terminal_editor)
         else:

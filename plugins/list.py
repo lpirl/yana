@@ -8,13 +8,15 @@ from fnmatch import filter as fnmatch_filter
 from os import sep as pathsep, linesep, remove
 from os.path import split as path_split, join as path_join, isfile
 from json import dump, load
+import abc
 
 from lib import CACHE_DIR
-from plugins import Registry, AbstractBaseSubCommand, AbstractBaseFinder
 from lib.printing import (print_colored, print_colored_2, print_default,
                           print_highlighted)
+from plugins import Registry, AbstractBaseSubCommand, AbstractBaseFinder
 
 LIST_CACHE_FILE = path_join(CACHE_DIR, "list_cache.json")
+
 
 class BaseLastListingFinder(AbstractBaseFinder):
     """
@@ -23,7 +25,15 @@ class BaseLastListingFinder(AbstractBaseFinder):
     This mainly deals with loading cached paths.
     """
 
-    def set_up(self, *args):
+    # disable check for not overridden abstract methods:
+    #pylint: disable=W0223
+    # since pylint does not detect this class being abstract itself correctly
+    # (see http://stackoverflow.com/questions/22186843/
+    #  pylint-w0223-method-is-abstract-in-class-but-is-not-overridden
+    #  #comment33806701_22224042)
+    __metaclass__ = abc.ABCMeta
+
+    def set_up(self, *_):
         self.load_last_listed_paths()
 
     def load_last_listed_paths(self):
@@ -40,7 +50,7 @@ class BaseLastListingFinder(AbstractBaseFinder):
                     remove(file_name)
                 else:
                     paths = [p for p in paths if isfile(p)]
-        logging.debug("loaded %u oaths from last listing" % len(paths))
+        logging.debug("loaded %u paths from last listing", len(paths))
         self.last_listed_paths = paths
 
 @Registry.register_finder
@@ -58,12 +68,23 @@ class LastListingIndexFinder(BaseLastListingFinder):
         """
 
         for query in queries:
-            if query.isdigit():
-                index = int(query) - 1
-                if -1 < index and index < len(self.last_listed_paths):
-                    path = self.last_listed_paths[index]
-                    logging.info("found by index in cache: %s", path)
-                    found_path_callback(path)
+            try:
+                index = int(query)
+            except ValueError:
+                return
+
+            # abs() to allow use of negative indexing
+            abs_index = abs(index)
+            print(abs_index, len(self.last_listed_paths))
+            if abs_index > 0 and abs_index <= len(self.last_listed_paths):
+
+                # for positive numbers, make indexing start at 1
+                if index > 0:
+                    index -= 1
+
+                path = self.last_listed_paths[index]
+                logging.info("found by index in cache: %s", path)
+                found_path_callback(path)
 
 @Registry.register_finder
 class LastListingRunMatchFinder(BaseLastListingFinder):
@@ -87,6 +108,11 @@ class LastListingRunMatchFinder(BaseLastListingFinder):
 
 @Registry.register_sub_command
 class ListSubCommand(AbstractBaseSubCommand):
+    """
+    Lists notes found.
+    Saves listed items to disk to be able to refer to them by indexes
+    or by matching their paths (with separate finders, respectively).
+    """
 
     sub_command = "list"
     sub_command_help = "lists notes"

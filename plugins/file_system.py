@@ -1,3 +1,8 @@
+"""
+Implements plugins to find notes in the file system.
+"""
+
+
 import re
 from os.path import isfile, isdir
 import logging
@@ -7,7 +12,7 @@ from plugins import Registry, AbstractBaseFinder
 @Registry.register_finder
 class FileSystemFinder(AbstractBaseFinder):
     """
-    A finder that searches within the file system.
+    A finder that searches recursively within the file system.
     """
 
     finds = "recursively in the file system"
@@ -20,7 +25,8 @@ class FileSystemFinder(AbstractBaseFinder):
                                 help='regular expression used to identify ' +
                                 'notes paths')
 
-    def _find_scandir(self, args, dir_paths, match, found_path_callback):
+    @staticmethod
+    def _find_scandir(dir_paths, match, found_path_callback):
         """
         Search for matching files using the new and fast ``os.scandir``.
         Matching files will be submitted via ``found_path_callback``.
@@ -40,7 +46,8 @@ class FileSystemFinder(AbstractBaseFinder):
                 logging.info("found in file system: %s", dir_entry.path)
                 found_path_callback(dir_entry.path)
 
-    def _find_walk(self, args, dir_paths, match, found_path_callback):
+    @staticmethod
+    def _find_walk(dir_paths, match, found_path_callback):
         """
         Search for matching files w/o new (and fast ``os.scandir``).
         Matching files will be submitted via ``found_path_callback``.
@@ -74,7 +81,7 @@ class FileSystemFinder(AbstractBaseFinder):
 
         try:
             # cPython >= 3.5
-            self._find_scandir(args, dir_paths, match, found_path_callback)
+            self._find_scandir(dir_paths, match, found_path_callback)
         except ImportError:
             # cPython < 3.5
-            self._find_walk(args, dir_paths, match, found_path_callback)
+            self._find_walk(dir_paths, match, found_path_callback)
