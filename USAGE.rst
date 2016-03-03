@@ -7,24 +7,31 @@ yana --help
 
 ::
 
-  usage: yana.py [-h] [-d] [-v] [-n] [-m MATCH] {edit,list,show} ...
+  usage: yana.py [-h] [-d] [-v] [--tag-regex TAG_REGEX] [-n]
+                 [--note-regex NOTE_REGEX]
+                 {edit,list,show,tags} ...
   
   Yet Another Notes App - this one builds on what will persist (plaint text
   files and a file system).
   
   positional arguments:
-    {edit,list,show}      sub command
+    {edit,list,show,tags}
+                          sub command
       edit                edit notes
       list                lists notes
       show                show notes
+      tags                show used tags for notes
   
   optional arguments:
     -h, --help            show this help message and exit
     -d, --debug           turn on debug messages (default: False)
     -v, --verbose         turn on verbose messages (default: False)
+    --tag-regex TAG_REGEX
+                          regular expression used to identify tags in notes
+                          (default: (?m)(?<!\[)(?:#)([\w-]+))
     -n, --new             ignore non-existing notes / allow new notes to be
                           created (default: False)
-    -m MATCH, --match MATCH
+    --note-regex NOTE_REGEX
                           regular expression used to identify notes paths
                           (default: .*\.note$)
   
@@ -38,12 +45,12 @@ yana edit --help
 
   usage: yana.py edit [-h] [-s] [-t] [-w] [--editor EDITOR]
                       [--terminal-editor TERMINAL_EDITOR]
-                      [note [note ...]]
+                      [query [query ...]]
   
   positional arguments:
-    note                  target note (strategies: recursively in the file
-                          system, listed during last run by their index, listed
-                          during last run by matching paths).
+    query                 a query for notes (searches: recursively in the file
+                          system, last listed by index, last listed by pattern-
+                          matching paths).
   
   optional arguments:
     -h, --help            show this help message and exit
@@ -60,15 +67,15 @@ yana list --help
 
 ::
 
-  usage: yana.py list [-h] [note [note ...]]
+  usage: yana.py list [-h] [-t] [query [query ...]]
   
   positional arguments:
-    note        target note (strategies: recursively in the file system, listed
-                during last run by their index, listed during last run by
-                matching paths).
+    query       a query for notes (searches: recursively in the file system,
+                last listed by index, last listed by pattern-matching paths).
   
   optional arguments:
     -h, --help  show this help message and exit
+    -t, --tags  list tags as well
 
 
 yana show --help
@@ -76,13 +83,29 @@ yana show --help
 
 ::
 
-  usage: yana.py show [-h] [note [note ...]]
+  usage: yana.py show [-h] [query [query ...]]
   
   positional arguments:
-    note        target note (strategies: recursively in the file system, listed
-                during last run by their index, listed during last run by
-                matching paths).
+    query       a query for notes (searches: recursively in the file system,
+                last listed by index, last listed by pattern-matching paths).
   
   optional arguments:
     -h, --help  show this help message and exit
+
+
+yana tags --help
+================
+
+::
+
+  usage: yana.py tags [-h] [-s] [-n] [query [query ...]]
+  
+  positional arguments:
+    query        a query for notes (searches: recursively in the file system,
+                 last listed by index, last listed by pattern-matching paths).
+  
+  optional arguments:
+    -h, --help   show this help message and exit
+    -s, --sort   sort output
+    -n, --notes  show notes containing the corresponding tag
 
