@@ -1,7 +1,7 @@
 YANA
 ====
 
-**Y**\ et **A**\ nother **N**\ otes **A**\ pp wants ease the management
+**Y**\ et **A**\ nother **N**\ otes **A**\ pp wants to ease the management
 of knowledge using
 only a few mental concepts,
 tools you know (e.g. your terminal and editor of choice)
