@@ -64,4 +64,5 @@ class Note(object):
             return []
         with open(self.abspath) as note_file:
             note_content = note_file.read()
-            return self._tag_pattern.findall(note_content)
+            tags_list = self._tag_pattern.findall(note_content)
+            return set(tags_list)
