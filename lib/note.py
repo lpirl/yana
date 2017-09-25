@@ -27,7 +27,7 @@ class Note(object):
         """
         arg_parser.add_argument('--tag-regex', help='regular expression ' +
                                 'used to identify tags in notes',
-                                default=r"(?m)(?<!\[)(?:#)([\w-]+)")
+                                default=r"(?m)(?<!\[)(?:#)([\w_]+)")
 
     @classmethod
     def set_args(cls, args):
