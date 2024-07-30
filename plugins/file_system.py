@@ -22,7 +22,7 @@ class FileSystemFinder(AbstractBaseFinder):
         arg_parser.add_argument('-n', '--new', action='store_true',
                                 default=False, help='ignore non-existing ' +
                                 'notes / allow new notes to be created')
-        arg_parser.add_argument('--note-regex', default=r'.*\.note$',
+        arg_parser.add_argument('--note-regex', default=r'(.*\.)?notes?$',
                                 help='regular expression used to identify ' +
                                 'notes paths')
 
