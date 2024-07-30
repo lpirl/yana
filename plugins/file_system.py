@@ -4,7 +4,8 @@ Implements plugins to find notes in the file system.
 
 
 import re
-from os.path import isfile, isdir
+from os import walk
+from os.path import isfile, isdir, join as path_join
 import logging
 
 from plugins import Registry, AbstractBaseFinder
@@ -52,16 +53,7 @@ class FileSystemFinder(AbstractBaseFinder):
         Search for matching files w/o new (and fast ``os.scandir``).
         Matching files will be submitted via ``found_path_callback``.
         """
-        logging.debug("using walk")
-        from os import walk
-        from os.path import join as path_join
-        for dir_path in dir_paths:
-            for root, _, files in walk(dir_path):
-                for file_path in files:
-                    if match(file_path):
-                        full_path = path_join(root, file_path)
-                        logging.info("found in file system: %s", full_path)
-                        found_path_callback(full_path)
+
 
 
     def find(self, args, queries, found_path_callback):
@@ -79,9 +71,11 @@ class FileSystemFinder(AbstractBaseFinder):
             elif (isfile(query) or args.new) and match(query):
                 found_path_callback(query)
 
-        try:
-            # cPython >= 3.5
-            self._find_scandir(dir_paths, match, found_path_callback)
-        except ImportError:
-            # cPython < 3.5
-            self._find_walk(dir_paths, match, found_path_callback)
+        logging.debug("walking file system")
+        for dir_path in dir_paths:
+            for root, _, files in walk(dir_path):
+                for file_path in files:
+                    if match(file_path):
+                        full_path = path_join(root, file_path)
+                        logging.info("found in file system: %s", full_path)
+                        found_path_callback(full_path)
