@@ -154,6 +154,6 @@ class AbstractBaseFinder(AbstractBasePlugin):
         pass
 
 # load sub modules so they can register at the corresponding registry
-for module_loader, module_name, _ in walk_packages(__path__):
+for module_finder, module_name, _ in walk_packages(__path__):
     logging.debug("loading plugin module %s", module_name)
-    module_loader.find_module(module_name).load_module(module_name)
+    module_finder.find_spec(f".{module_name}").loader.load_module()
