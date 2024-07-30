@@ -2,14 +2,6 @@
 
 # this wrapper tries to chose a preferred interpreter
 
-DIR=`dirname $(python -c "import os; print os.path.realpath(\"${0}\")")`
+d=~/devops/yana
 
-for i in pypy python3 python2 python;
-do
-  if type $i > /dev/null;
-  then
-    args="${*:1}"
-    $i $DIR/yana.py "$@"
-    exit $?
-  fi
-done
+exec $d/venv/bin/python $d/yana.py "$@"
