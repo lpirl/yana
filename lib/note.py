@@ -2,6 +2,7 @@
 This module implements the in-code representation of on-disk notes.
 """
 
+from contextlib import contextmanager
 from os.path import abspath, relpath, normpath, isfile
 from re import compile as re_compile
 
@@ -55,14 +56,36 @@ class Note(object):
     def __str__(self):
         return self.path
 
+    def open(self, *args, **kwags):
+        """
+        Returns the contents of the note.
+        """
+        if not isfile(self.abspath):
+            return
+        return open(self.abspath, *args, **kwags)
+
+    @property
+    def content(self):
+        """
+        Returns the contents of the note.
+        """
+        out = ""
+        with self.open() as note_file:
+            out = note_file.read()
+        return out
+
+    @property
+    def lines(self):
+        """
+        Yields the lines of the note.
+        """
+        with self.open() as note_file:
+            for line in note_file:
+                yield line
+
     @property
     def tags(self):
         """
         Returns all tags that can be found w/i a note.
         """
-        if not isfile(self.abspath):
-            return []
-        with open(self.abspath) as note_file:
-            note_content = note_file.read()
-            tags_list = self._tag_pattern.findall(note_content)
-            return set(tags_list)
+        return set(self._tag_pattern.findall(self.content))
