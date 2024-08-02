@@ -69,3 +69,9 @@ def print_path(path, interactive_only=False):
     pathname, filename = path_split(path)
     styled_print("magenta", "%s%s" % (pathname, pathsep), interactive_only)
     styled_print("bold_magenta", "%s" % filename, interactive_only)
+
+def print_highlight(text, interactive_only=False):
+    """
+    Shortcut to print generic highlight.
+    """
+    styled_print("red", text, interactive_only)
