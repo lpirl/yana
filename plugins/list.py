@@ -12,7 +12,7 @@ import abc
 
 from lib import CACHE_DIR
 from lib.printing import (print_colored, print_colored_2, print_default,
-                          print_highlighted)
+                          print_highlighted, print_path)
 from plugins import Registry, AbstractBaseSubCommand, AbstractBaseFinder
 
 LIST_CACHE_FILE = path_join(CACHE_DIR, "list_cache.json")
@@ -151,9 +151,7 @@ class ListSubCommand(AbstractBaseSubCommand):
         self.listed_paths.append(note.abspath)
 
         print_colored("%u " % len(self.listed_paths), True)
-        pathname, filename = path_split(note.path)
-        print_default("%s%s" % (pathname, pathsep))
-        print_highlighted("%s%s" % (filename, linesep))
+        print_path(note.path + linesep)
 
         if args.tags:
             tags = note.tags

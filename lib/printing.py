@@ -3,7 +3,8 @@ A few helpers to have a unified printing facility (similar to logging).
 """
 
 import sys
-from os import linesep
+from os import linesep, sep as pathsep
+from os.path import split as path_split
 
 from blessings import Terminal
 
@@ -60,3 +61,11 @@ def print_highlighted(text, interactive_only=False):
     Shortcut to print highlighted (w/o color).
     """
     styled_print("bold", text, interactive_only)
+
+def print_path(path, interactive_only=False):
+    """
+    Shortcut to print highlighted (w/o color).
+    """
+    pathname, filename = path_split(path)
+    styled_print("magenta", "%s%s" % (pathname, pathsep), interactive_only)
+    styled_print("bold_magenta", "%s" % filename, interactive_only)
