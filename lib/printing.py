@@ -7,13 +7,6 @@ from os import linesep
 
 from blessings import Terminal
 
-PYTHON_MAJOR_VERSION = sys.version_info[0]
-
-if PYTHON_MAJOR_VERSION == 2:
-    # enable utf8 compatibility
-    reload(sys)
-    sys.setdefaultencoding('utf8')
-
 TERMINAL = Terminal()
 
 def styled_print(style, text, interactive_only=False):
@@ -42,10 +35,7 @@ def styled_print(style, text, interactive_only=False):
         ))
 
     stream.write(text)
-
-    # make unbuffered writes in Python 3
-    if PYTHON_MAJOR_VERSION == 3:
-        stream.flush()
+    stream.flush()
 
 def print_default(text, interactive_only=False):
     """
